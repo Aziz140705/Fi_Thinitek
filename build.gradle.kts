@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
 }
 
 group = "com"
@@ -31,4 +32,19 @@ dependencies {
     // Tests
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
+
+
+// Recevoir et envoyer des données JSON
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:3.6.0")
+
+// Convertir JSON en objets Kotlin
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.0")
+
+// Hacher les mots de passe
+    implementation("org.mindrot:jbcrypt:0.4")
+
+    implementation("io.ktor:ktor-server-auth-jvm:3.6.0")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:3.6.0")
+
+
 }

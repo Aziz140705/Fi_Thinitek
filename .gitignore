@@ -16,3 +16,13 @@ local.properties
 .env
 .env.*
 !.env.example
+
+
+# Android Mobile
+mobile/.gradle/
+mobile/.idea/
+mobile/.kotlin/
+mobile/build/
+mobile/app/build/
+mobile/local.properties
+mobile/*.iml

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#F5FAF7">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🚗"
+        android:textSize="65sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fi Thnitek"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="#167D54"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="في ثنيتك"
+        android:textSize="24sp"
+        android:textColor="#333333"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Partagez votre trajet, voyagez malin !"
+        android:textSize="16sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="45dp" />
+
+    <Button
+        android:id="@+id/btnConnexion"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Se connecter"
+        android:textAllCaps="false"
+        android:textSize="17sp"
+        android:backgroundTint="#167D54"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnInscription"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Créer un compte"
+        android:textAllCaps="false"
+        android:textSize="17sp"
+        android:layout_marginTop="15dp"
+        android:backgroundTint="#253C35"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>
