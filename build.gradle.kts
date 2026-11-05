@@ -45,6 +45,6 @@ dependencies {
 
     implementation("io.ktor:ktor-server-auth-jvm:3.6.0")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:3.6.0")
-
+    implementation("org.eclipse.angus:jakarta.mail:2.0.5") //SMTP GMAIL
 
 }

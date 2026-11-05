@@ -14,30 +14,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🚗 Fi Thnitek"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            android:textColor="#167D54"
+            android:layout_marginTop="25dp"
             android:gravity="center"
-            android:layout_marginTop="30dp" />
+            android:text="🚗 Fi Thnitek"
+            android:textColor="#167D54"
+            android:textSize="30sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
             android:text="Créer votre compte"
-            android:textSize="23sp"
-            android:textStyle="bold"
             android:textColor="#253C35"
-            android:layout_marginTop="30dp" />
+            android:textSize="23sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="20dp"
             android:text="Rejoignez la communauté Fi Thnitek"
             android:textColor="#666666"
-            android:textSize="14sp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="20dp" />
+            android:textSize="14sp" />
 
         <EditText
             android:id="@+id/etNom"
@@ -51,68 +51,68 @@
             android:id="@+id/etPrenom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:hint="Prénom"
             android:inputType="textPersonName"
-            android:singleLine="true"
-            android:layout_marginTop="12dp" />
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:hint="Adresse email"
             android:inputType="textEmailAddress"
-            android:singleLine="true"
-            android:layout_marginTop="12dp" />
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etTelephone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:hint="Téléphone (facultatif)"
             android:inputType="phone"
-            android:singleLine="true"
-            android:layout_marginTop="12dp" />
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:hint="Mot de passe (8 caractères minimum)"
             android:inputType="textPassword"
-            android:singleLine="true"
-            android:layout_marginTop="12dp" />
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etConfirmPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:hint="Confirmer le mot de passe"
             android:inputType="textPassword"
-            android:singleLine="true"
-            android:layout_marginTop="12dp" />
+            android:singleLine="true" />
 
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="56dp"
+            android:layout_marginTop="28dp"
             android:text="Créer mon compte"
             android:textAllCaps="false"
-            android:textSize="17sp"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#167D54"
-            android:layout_marginTop="28dp" />
+            android:textSize="17sp"
+            android:backgroundTint="#167D54" />
 
-        <TextView
-            android:id="@+id/tvLogin"
+        <Button
+            android:id="@+id/btnRetourAccueil"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Déjà un compte ? Se connecter"
-            android:gravity="center"
+            android:layout_height="52dp"
+            android:layout_marginTop="14dp"
+            android:text="← Retour à l'accueil"
+            android:textAllCaps="false"
             android:textColor="#167D54"
-            android:textSize="15sp"
-            android:padding="16dp"
-            android:layout_marginTop="12dp" />
+            android:textSize="16sp"
+            android:backgroundTint="#E1F2E8" />
 
     </LinearLayout>
 </ScrollView>

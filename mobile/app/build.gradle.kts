@@ -1,9 +1,11 @@
+
 plugins {
     alias(libs.plugins.android.application)
 }
 
 android {
     namespace = "com.example.fithnitekmobile"
+
     compileSdk {
         version = release(37)
     }
@@ -18,6 +20,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Activer ViewBinding
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         release {
             optimization {
@@ -25,6 +32,7 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -37,6 +45,12 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+
+    // Retrofit : communication avec Ktor
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

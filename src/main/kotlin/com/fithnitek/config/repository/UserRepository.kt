@@ -8,6 +8,7 @@ import java.sql.SQLIntegrityConstraintViolationException
 
 object UserRepository {
 
+    // US01 : Inscription
     fun register(
         nom: String,
         prenom: String,
@@ -44,7 +45,38 @@ object UserRepository {
                 }
             }
         } catch (e: SQLIntegrityConstraintViolationException) {
-            null // Email déjà utilisé ou autre contrainte SQL
+            null
+        }
+    }
+
+    // US02 : Connexion
+    fun login(email: String, password: String): Pair<Int, String>? {
+
+        val sql = """
+            SELECT idUser, password_hash, role
+            FROM `user`
+            WHERE email = ?
+        """.trimIndent()
+
+        DatabaseFactory.getConnection().use { connection ->
+            connection.prepareStatement(sql).use { statement ->
+
+                statement.setString(1, email.trim().lowercase())
+
+                statement.executeQuery().use { result ->
+                    if (!result.next()) return null
+
+                    val hash = result.getString("password_hash")
+                        ?: return null
+
+                    if (!BCrypt.checkpw(password, hash)) return null
+
+                    val idUser = result.getInt("idUser")
+                    val role = result.getString("role")
+
+                    return Pair(idUser, role)
+                }
+            }
         }
     }
 }
