@@ -1,8 +1,11 @@
 
 package com.fithnitek.routes
 
+import com.fithnitek.config.JwtConfig
 import com.fithnitek.models.RegisterRequest
 import com.fithnitek.models.RegisterResponse
+import com.fithnitek.models.LoginRequest
+import com.fithnitek.models.LoginResponse
 import com.fithnitek.repository.UserRepository
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -15,9 +18,9 @@ fun Route.authRoutes() {
 
     route("/api/auth") {
 
+        // US01 : Inscription
         post("/register") {
 
-            // Recevoir les informations JSON
             val request = try {
                 call.receive<RegisterRequest>()
             } catch (e: Exception) {
@@ -32,7 +35,6 @@ fun Route.authRoutes() {
             val prenom = request.prenom.trim()
             val email = request.email.trim().lowercase()
 
-            // Vérifier les champs obligatoires
             if (nom.isBlank() || prenom.isBlank() ||
                 email.isBlank() || request.password.isBlank()) {
                 call.respond(
@@ -42,8 +44,8 @@ fun Route.authRoutes() {
                 return@post
             }
 
-            // Vérifier l'email
-            val emailValide = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+            val emailValide = Regex("""^[^\s@]+@[^\s@]+\.[^\s@]+$""")
+
             if (!emailValide.matches(email)) {
                 call.respond(
                     HttpStatusCode.BadRequest,
@@ -52,7 +54,6 @@ fun Route.authRoutes() {
                 return@post
             }
 
-            // Vérifier le mot de passe
             if (request.password.length < 8 ||
                 request.password.toByteArray(Charsets.UTF_8).size > 72) {
                 call.respond(
@@ -62,7 +63,6 @@ fun Route.authRoutes() {
                 return@post
             }
 
-            // Enregistrer dans MySQL
             val id = withContext(Dispatchers.IO) {
                 UserRepository.register(
                     nom = nom,
@@ -84,6 +84,55 @@ fun Route.authRoutes() {
                     RegisterResponse(false, "Inscription impossible : email déjà utilisé ou contrainte SQL")
                 )
             }
+        }
+
+        // US02 : Connexion avec JWT
+        post("/login") {
+
+            val request = try {
+                call.receive<LoginRequest>()
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    LoginResponse(false, "Données JSON invalides")
+                )
+                return@post
+            }
+
+            if (request.email.isBlank() || request.password.isBlank()) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    LoginResponse(false, "Email et mot de passe obligatoires")
+                )
+                return@post
+            }
+
+            // Vérifier email et mot de passe BCrypt
+            val user = withContext(Dispatchers.IO) {
+                UserRepository.login(request.email, request.password)
+            }
+
+            if (user == null) {
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    LoginResponse(false, "Email ou mot de passe incorrect")
+                )
+                return@post
+            }
+
+            // Générer le token JWT
+            val token = JwtConfig.generateToken(user.first, user.second)
+
+            call.respond(
+                HttpStatusCode.OK,
+                LoginResponse(
+                    success = true,
+                    message = "Connexion réussie",
+                    token = token,
+                    idUser = user.first,
+                    role = user.second
+                )
+            )
         }
     }
 }

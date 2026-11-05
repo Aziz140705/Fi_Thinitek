@@ -3,51 +3,139 @@ package com.example.fithnitekmobile
 
 import android.os.Bundle
 import android.util.Patterns
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.fithnitekmobile.databinding.ActivityRegisterBinding
+import com.example.fithnitekmobile.network.RegisterRequest
+import com.example.fithnitekmobile.network.RegisterResponse
+import com.example.fithnitekmobile.network.RetrofitClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class RegisterActivity : AppCompatActivity() {
 
+    // Accès aux composants de activity_register.xml
+    private lateinit var binding: ActivityRegisterBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_register)
 
-        val nom = findViewById<EditText>(R.id.etNom)
-        val prenom = findViewById<EditText>(R.id.etPrenom)
-        val email = findViewById<EditText>(R.id.etEmail)
-        val password = findViewById<EditText>(R.id.etPassword)
-        val confirm = findViewById<EditText>(R.id.etConfirmPassword)
+        // Initialisation de ViewBinding
+        binding = ActivityRegisterBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        findViewById<Button>(R.id.btnRegister).setOnClickListener {
+        // Retour à l'accueil
+        binding.btnRetourAccueil.setOnClickListener {
+            finish()
+        }
 
-            val n = nom.text.toString().trim()
-            val p = prenom.text.toString().trim()
-            val e = email.text.toString().trim()
-            val mdp = password.text.toString()
+        // Bouton inscription
+        binding.btnRegister.setOnClickListener {
 
+            // Récupérer les informations du formulaire
+            val nom = binding.etNom.text.toString().trim()
+            val prenom = binding.etPrenom.text.toString().trim()
+            val email = binding.etEmail.text.toString().trim()
+            val telephone = binding.etTelephone.text.toString().trim()
+            val password = binding.etPassword.text.toString()
+            val confirmation = binding.etConfirmPassword.text.toString()
+
+            // Vérification des champs
             when {
-                n.isEmpty() -> nom.error = "Nom obligatoire"
-                p.isEmpty() -> prenom.error = "Prénom obligatoire"
-                !Patterns.EMAIL_ADDRESS.matcher(e).matches() ->
-                    email.error = "Email invalide"
+                nom.isBlank() ->
+                    binding.etNom.error = "Nom obligatoire"
 
-                mdp.length < 8 ->
-                    password.error = "8 caractères minimum"
+                prenom.isBlank() ->
+                    binding.etPrenom.error = "Prénom obligatoire"
 
-                mdp.toByteArray(Charsets.UTF_8).size > 72 ->
-                    password.error = "72 octets maximum"
+                !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
+                    binding.etEmail.error = "Email invalide"
 
-                mdp != confirm.text.toString() ->
-                    confirm.error = "Mots de passe différents"
+                password.length < 8 ->
+                    binding.etPassword.error = "8 caractères minimum"
 
-                else -> Toast.makeText(
-                    this,
-                    "Formulaire valide !",
-                    Toast.LENGTH_SHORT
-                ).show()
+                password.toByteArray(Charsets.UTF_8).size > 72 ->
+                    binding.etPassword.error = "72 octets maximum"
+
+                password != confirmation ->
+                    binding.etConfirmPassword.error =
+                        "Mots de passe différents"
+
+                else -> {
+                    // Préparer les données à envoyer au backend
+                    val request = RegisterRequest(
+                        nom = nom,
+                        prenom = prenom,
+                        email = email,
+                        password = password,
+                        telephone = telephone.ifBlank { null }
+                    )
+
+                    registerUser(request)
+                }
             }
         }
+    }
+
+    // Envoyer la demande d'inscription à Ktor
+    private fun registerUser(request: RegisterRequest) {
+
+        binding.btnRegister.isEnabled = false
+
+        RetrofitClient.api.register(request)
+            .enqueue(object : Callback<RegisterResponse> {
+
+                override fun onResponse(
+                    call: Call<RegisterResponse>,
+                    response: Response<RegisterResponse>
+                ) {
+                    if (isFinishing || isDestroyed) return
+
+                    binding.btnRegister.isEnabled = true
+
+                    if (response.isSuccessful &&
+                        response.body()?.success == true
+                    ) {
+                        Toast.makeText(
+                            this@RegisterActivity,
+                            "Compte créé avec succès !",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        finish()
+
+                    } else {
+                        // Afficher le message selon le code HTTP
+                        val message = when (response.code()) {
+                            409 -> "Cet email est déjà utilisé"
+                            400 -> "Informations invalides"
+                            else -> "Erreur serveur : ${response.code()}"
+                        }
+
+                        Toast.makeText(
+                            this@RegisterActivity,
+                            message,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(
+                    call: Call<RegisterResponse>,
+                    t: Throwable
+                ) {
+                    if (isFinishing || isDestroyed) return
+
+                    binding.btnRegister.isEnabled = true
+
+                    // Erreur réseau : serveur indisponible
+                    Toast.makeText(
+                        this@RegisterActivity,
+                        "Connexion impossible avec le serveur",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
     }
 }
