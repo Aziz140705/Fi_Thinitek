@@ -66,7 +66,7 @@ object EmailService {
                 """
                 Bonjour,
 
-                Vous avez demandé la réinitialisation
+                 Vous avez demandé la réinitialisation
                 de votre mot de passe Fi Thnitek.
 
                 Votre code de vérification est :
@@ -87,6 +87,8 @@ object EmailService {
         }
 
         // Envoyer l'email
+        println("📧 Envoi de l'e-mail via SMTP Gmail ($GMAIL) vers $toEmail...")
         Transport.send(message)
+        println("📧 E-mail transmis au serveur SMTP avec succès !")
     }
 }

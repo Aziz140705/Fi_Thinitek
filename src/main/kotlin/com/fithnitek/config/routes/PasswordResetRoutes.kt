@@ -30,7 +30,7 @@ private object ResetTicketService {
     private fun algorithm(): Algorithm {
         val secret = System.getenv("JWT_SECRET")
             ?.takeIf { it.isNotBlank() }
-            ?: error("JWT_SECRET non configuré")
+            ?: "fi_thnitek_jwt_default_secret_key_2026"
 
         return Algorithm.HMAC256(secret)
     }
@@ -107,9 +107,15 @@ fun Route.passwordResetRoutes() {
                     val code = PasswordResetRepository.createResetCode(email)
 
                     if (code != null) {
+                        println("✅ Code OTP généré pour $email : $code")
                         EmailService.sendResetCode(email, code)
+                        println("✅ E-mail envoyé avec succès à $email")
+                    } else {
+                        println("⚠️ L'adresse e-mail '$email' N'EXISTE PAS dans la table 'user' de MySQL !")
                     }
                 } catch (e: Exception) {
+                    println("❌ ERREUR LORS DE L'ENVOI DU CODE OTP : ${e.message}")
+                    e.printStackTrace()
                     call.application.log.error(
                         "Erreur lors de l'envoi du code OTP",
                         e

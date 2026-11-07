@@ -1,92 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F9F5"
+    android:background="@drawable/bg_dots"
     android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="24dp">
+        android:layout_height="wrap_content"
+        android:padding="28dp">
 
         <TextView
+            android:id="@+id/tvPill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Fi Thnitek"
-            android:textSize="34sp"
+            android:background="@drawable/bg_pill_yellow"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="🇹🇳 TN • 2026"
+            android:textColor="#1A1A1A"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="#247A4B"
-            android:layout_marginBottom="8dp"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/tvBrand"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/bangers"
+            android:letterSpacing="0.03"
+            android:text="Fi Thnitek"
+            android:textColor="@color/pocket_red"
+            android:textSize="48sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPill" />
+
+        <TextView
+            android:id="@+id/tvArabic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="في ثنيتك"
-            android:textSize="24sp"
-            android:textColor="#247A4B"
-            android:layout_marginBottom="12dp"/>
+            android:textColor="#1A1A1A"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBrand" />
 
         <TextView
+            android:id="@+id/tvSub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Connectez-vous à votre compte"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="32dp"/>
-
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:hint="Adresse e-mail"
-            android:inputType="textEmailAddress"
-            android:padding="12dp"
-            android:backgroundTint="#247A4B"/>
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:hint="Mot de passe"
-            android:inputType="textPassword"
-            android:padding="12dp"
-            android:backgroundTint="#247A4B"/>
-
-        <TextView
-            android:id="@+id/tvForgotPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:gravity="end"
-            android:text="Mot de passe oublié ?"
-            android:textColor="#247A4B"
-            android:textSize="14sp"
-            android:padding="8dp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:layout_marginBottom="32dp"
+            android:text="Content de vous revoir ! Connectez-vous"
+            android:textColor="#4A5568"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvArabic" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="32dp"
-            android:text="Se connecter"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#247A4B"/>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardForm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSub"
+            app:strokeColor="#F0F0F0"
+            app:strokeWidth="1dp">
 
-        <Button
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="28dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:hint="Adresse e-mail"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxStrokeColor="@color/pocket_red"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:startIconDrawable="@drawable/ic_email">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"
+                        android:paddingVertical="16dp"
+                        android:singleLine="true"
+                        android:textSize="15sp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:hint="Mot de passe"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="16dp"
+                    app:boxCornerRadiusBottomStart="16dp"
+                    app:boxCornerRadiusTopEnd="16dp"
+                    app:boxCornerRadiusTopStart="16dp"
+                    app:boxStrokeColor="@color/pocket_red"
+                    app:endIconMode="password_toggle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tilEmail"
+                    app:startIconDrawable="@drawable/ic_lock">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"
+                        android:paddingVertical="16dp"
+                        android:singleLine="true"
+                        android:textSize="15sp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvForgotPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:text="Mot de passe oublié ?"
+                    android:textColor="@color/pocket_red"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tilPassword" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLogin"
+                    android:layout_width="0dp"
+                    android:layout_height="58dp"
+                    android:layout_marginTop="24dp"
+                    android:backgroundTint="@color/sunshine_yellow"
+                    android:text="Se connecter"
+                    android:textAllCaps="false"
+                    android:textColor="#1A1A1A"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="29dp"
+                    app:elevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvForgotPassword" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRetourAccueil"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Retour à l'accueil"
-            android:textColor="#247A4B"
-            android:backgroundTint="#E4EFE6"/>
+            android:layout_width="0dp"
+            android:layout_height="58dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="28dp"
+            android:backgroundTint="@color/pocket_red"
+            android:text="← Retour à l'accueil"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="29dp"
+            app:elevation="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardForm" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </ScrollView>
