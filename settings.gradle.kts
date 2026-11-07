@@ -1,5 +1,13 @@
 pluginManagement {
     repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
         gradlePluginPortal()
     }
 }
@@ -9,7 +17,9 @@ plugins {
 }
 
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
+        google()
         mavenCentral()
     }
     versionCatalogs {
@@ -19,3 +29,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "fithnitek"
 
+include(":app")
+project(":app").projectDir = file("mobile/app")

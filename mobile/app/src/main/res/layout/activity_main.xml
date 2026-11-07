@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_dots"
+    android:padding="28dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardImage"
+        android:layout_width="0dp"
+        android:layout_height="220dp"
+        android:layout_marginTop="24dp"
+        app:cardBackgroundColor="#00000000"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:contentDescription="Logo Fi Thnitek"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/gemini_generated_image_ofo4fmofo4fmofo4_edited" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/bangers"
+        android:letterSpacing="0.04"
+        android:text="Fi Thnitek"
+        android:textColor="@color/pocket_red"
+        android:textSize="64sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardImage" />
+
+    <TextView
+        android:id="@+id/tvArabic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="في ثنيتك"
+        android:textColor="#1A1A1A"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+    <TextView
+        android:id="@+id/tvSlogan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/antic"
+        android:gravity="center"
+        android:text="Partagez votre trajet, voyagez malin !"
+        android:textColor="#4A5568"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvArabic" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConnexion"
+        android:layout_width="0dp"
+        android:layout_height="58dp"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="@color/sunshine_yellow"
+        android:text="Se connecter"
+        android:textAllCaps="false"
+        android:textColor="#1A1A1A"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        app:cornerRadius="28dp"
+        app:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSlogan" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnInscription"
+        android:layout_width="0dp"
+        android:layout_height="58dp"
+        android:layout_marginTop="14dp"
+        android:backgroundTint="@color/pocket_red"
+        android:text="Créer un compte"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        app:cornerRadius="28dp"
+        app:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnConnexion" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
