@@ -1,4 +1,3 @@
-
 package com.fithnitek.repository
 
 import com.fithnitek.config.DatabaseFactory
@@ -58,7 +57,7 @@ object UserRepository {
             WHERE email = ?
         """.trimIndent()
 
-        DatabaseFactory.getConnection().use { connection ->
+        return DatabaseFactory.getConnection().use { connection ->
             connection.prepareStatement(sql).use { statement ->
 
                 statement.setString(1, email.trim().lowercase())
@@ -69,12 +68,18 @@ object UserRepository {
                     val hash = result.getString("password_hash")
                         ?: return null
 
-                    if (!BCrypt.checkpw(password, hash)) return null
+                    val isMatch = try {
+                        BCrypt.checkpw(password, hash)
+                    } catch (e: Exception) {
+                        false
+                    }
+
+                    if (!isMatch) return null
 
                     val idUser = result.getInt("idUser")
                     val role = result.getString("role")
 
-                    return Pair(idUser, role)
+                    Pair(idUser, role)
                 }
             }
         }

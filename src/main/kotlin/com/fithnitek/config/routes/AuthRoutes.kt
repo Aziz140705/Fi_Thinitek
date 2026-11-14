@@ -1,4 +1,3 @@
-
 package com.fithnitek.routes
 
 import com.fithnitek.config.JwtConfig
@@ -8,6 +7,7 @@ import com.fithnitek.models.LoginRequest
 import com.fithnitek.models.LoginResponse
 import com.fithnitek.repository.UserRepository
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -63,14 +63,23 @@ fun Route.authRoutes() {
                 return@post
             }
 
-            val id = withContext(Dispatchers.IO) {
-                UserRepository.register(
-                    nom = nom,
-                    prenom = prenom,
-                    email = email,
-                    password = request.password,
-                    telephone = request.telephone?.trim()?.takeIf { it.isNotEmpty() }
+            val id = try {
+                withContext(Dispatchers.IO) {
+                    UserRepository.register(
+                        nom = nom,
+                        prenom = prenom,
+                        email = email,
+                        password = request.password,
+                        telephone = request.telephone?.trim()?.takeIf { it.isNotEmpty() }
+                    )
+                }
+            } catch (e: Exception) {
+                call.application.environment.log.error("Erreur lors de l'inscription", e)
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    RegisterResponse(false, "Erreur serveur ou de connexion à la base de données")
                 )
+                return@post
             }
 
             if (id != null) {
@@ -81,7 +90,7 @@ fun Route.authRoutes() {
             } else {
                 call.respond(
                     HttpStatusCode.Conflict,
-                    RegisterResponse(false, "Inscription impossible : email déjà utilisé ou contrainte SQL")
+                    RegisterResponse(false, "Inscription impossible : email déjà utilisé")
                 )
             }
         }
@@ -108,8 +117,22 @@ fun Route.authRoutes() {
             }
 
             // Vérifier email et mot de passe BCrypt
-            val user = withContext(Dispatchers.IO) {
-                UserRepository.login(request.email, request.password)
+            val user = try {
+                withContext(Dispatchers.IO) {
+                    UserRepository.login(request.email, request.password)
+                }
+            } catch (e: Exception) {
+                call.application.environment.log.error("Erreur lors de la connexion (login)", e)
+                val errorMessage = if (e.message?.contains("base de données", ignoreCase = true) == true || e.message?.contains("MySQL", ignoreCase = true) == true) {
+                    "Erreur de connexion MySQL : vérifiez que le service MySQL est démarré sur localhost:3306"
+                } else {
+                    "Erreur serveur : ${e.localizedMessage}"
+                }
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    LoginResponse(false, errorMessage)
+                )
+                return@post
             }
 
             if (user == null) {

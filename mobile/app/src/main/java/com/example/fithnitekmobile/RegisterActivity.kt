@@ -58,6 +58,26 @@ class RegisterActivity : AppCompatActivity() {
                 password.toByteArray(Charsets.UTF_8).size > 72 ->
                     binding.etPassword.error = "72 octets maximum"
 
+                // NOUVEAU : Vérifier une majuscule
+                !password.any { it.isUpperCase() } ->
+                    binding.etPassword.error =
+                        "Ajoutez une lettre majuscule"
+
+                // NOUVEAU : Vérifier une minuscule
+                !password.any { it.isLowerCase() } ->
+                    binding.etPassword.error =
+                        "Ajoutez une lettre minuscule"
+
+                // NOUVEAU : Vérifier un chiffre
+                !password.any { it.isDigit() } ->
+                    binding.etPassword.error =
+                        "Ajoutez un chiffre"
+
+                // NOUVEAU : Vérifier un caractère spécial
+                !password.any { !it.isLetterOrDigit() } ->
+                    binding.etPassword.error =
+                        "Ajoutez un caractère spécial (@, #, !...)"
+
                 password != confirmation ->
                     binding.etConfirmPassword.error =
                         "Mots de passe différents"

@@ -9,7 +9,8 @@ object JwtConfig {
 
     private val secret: String =
         System.getenv("JWT_SECRET")
-            ?: error("JWT_SECRET doit être configuré")
+            ?.takeIf { it.isNotBlank() }
+            ?: "fi_thnitek_jwt_default_secret_key_2026"
 
     private const val issuer = "fi-thnitek"
     private const val audience = "fi-thnitek-mobile"

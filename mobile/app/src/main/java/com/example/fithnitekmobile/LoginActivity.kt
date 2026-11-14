@@ -2,12 +2,14 @@ package com.example.fithnitekmobile
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.fithnitekmobile.databinding.ActivityLoginBinding
 import com.example.fithnitekmobile.network.LoginRequest
 import com.example.fithnitekmobile.network.LoginResponse
 import com.example.fithnitekmobile.network.RetrofitClient
+import com.google.gson.JsonParser
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -94,33 +96,35 @@ class LoginActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        // Redirection selon le rôle
-                        if (result.role == "PASSAGER") {
+                        val intent = Intent(
+                            this@LoginActivity,
+                            PassagerActivity::class.java
+                        )
 
-                            val intent = Intent(
-                                this@LoginActivity,
-                                PassagerActivity::class.java
-                            )
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-                            intent.flags =
-                                Intent.FLAG_ACTIVITY_NEW_TASK or
-                                        Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                            startActivity(intent)
-                            finish()
-
-                        } else {
-                            Toast.makeText(
-                                this@LoginActivity,
-                                "Espace ${result.role} bientôt disponible",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                        startActivity(intent)
+                        finish()
 
                     } else {
-                        val message = when (response.code()) {
+                        var serverMsg: String? = null
+                        try {
+                            val errorBody = response.errorBody()?.string()
+                            if (!errorBody.isNullOrBlank()) {
+                                val json = JsonParser.parseString(errorBody).asJsonObject
+                                if (json.has("message")) {
+                                    serverMsg = json.get("message").asString
+                                }
+                            }
+                        } catch (_: Exception) {
+                        }
+
+                        val message = serverMsg ?: when (response.code()) {
                             401 -> "Email ou mot de passe incorrect"
                             400 -> "Informations invalides"
+                            500 -> "Erreur serveur (500) : Vérifiez que le serveur Ktor et MySQL sont démarrés"
                             else -> "Erreur serveur : ${response.code()}"
                         }
 
@@ -139,10 +143,13 @@ class LoginActivity : AppCompatActivity() {
                     if (isFinishing || isDestroyed) return
 
                     binding.btnLogin.isEnabled = true
+                    val detail = t.localizedMessage ?: t.message ?: "Réseau indisponible"
+
+                    Log.e("FiThnitekLogin", "Echec connexion réseau Ktor", t)
 
                     Toast.makeText(
                         this@LoginActivity,
-                        "Connexion impossible avec le serveur",
+                        "Impossible de contacter le serveur Ktor ($detail).\nS'assurer que le backend Ktor est lancé sur http://localhost:8080",
                         Toast.LENGTH_LONG
                     ).show()
                 }

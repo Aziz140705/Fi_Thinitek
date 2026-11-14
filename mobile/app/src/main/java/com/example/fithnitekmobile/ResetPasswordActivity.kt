@@ -1,3 +1,4 @@
+
 package com.example.fithnitekmobile
 
 import android.content.Intent
@@ -47,6 +48,26 @@ class ResetPasswordActivity : AppCompatActivity() {
 
                 password.toByteArray(Charsets.UTF_8).size > 72 ->
                     binding.etNewPassword.error = "72 octets maximum"
+
+                // NOUVEAU : au moins une majuscule
+                !password.any { it.isUpperCase() } ->
+                    binding.etNewPassword.error =
+                        "Ajoutez une lettre majuscule"
+
+                // NOUVEAU : au moins une minuscule
+                !password.any { it.isLowerCase() } ->
+                    binding.etNewPassword.error =
+                        "Ajoutez une lettre minuscule"
+
+                // NOUVEAU : au moins un chiffre
+                !password.any { it.isDigit() } ->
+                    binding.etNewPassword.error =
+                        "Ajoutez un chiffre"
+
+                // NOUVEAU : au moins un caractère spécial
+                !password.any { !it.isLetterOrDigit() } ->
+                    binding.etNewPassword.error =
+                        "Ajoutez un caractère spécial (@, #, !...)"
 
                 password != confirmation ->
                     binding.etConfirmPassword.error =

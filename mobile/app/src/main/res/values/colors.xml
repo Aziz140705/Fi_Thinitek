@@ -26,4 +26,19 @@
 
     <color name="outline">#E0E0E0</color>
     <color name="error">#E10600</color>
+
+    <!-- Brand Colors -->
+    <color name="brand_red">#E50914</color>
+    <color name="brand_red_dark">#B20710</color>
+    <color name="brand_yellow">#FFC700</color>
+    <color name="brand_yellow_light">#FFF4CC</color>
+    <color name="brand_blue">#087CF0</color>
+
+    <!-- Premium Dark & Light Neutrals -->
+    <color name="bg_dark_gradient_start">#12131C</color>
+    <color name="bg_dark_gradient_end">#1D1E2C</color>
+    <color name="surface_card_dark">#26283B</color>
+    <color name="text_primary_light">#FFFFFF</color>
+    <color name="text_secondary_light">#A0A5BA</color>
+    <color name="stroke_glass">#33FFFFFF</color>
 </resources>

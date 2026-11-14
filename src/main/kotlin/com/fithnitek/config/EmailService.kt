@@ -12,16 +12,16 @@ import java.util.Properties
 
 object EmailService {
 
-    // Adresse Gmail utilisée pour envoyer les codes OTP
-    private const val GMAIL = "rayenessid15@gmail.com"
+    // Gmail utilisé pour envoyer les codes OTP
+    private const val GMAIL = "arfa.aziz789@gmail.com"
 
-    // Mot de passe d'application Gmail (16 caractères)
-    private const val APP_PASSWORD = "bosm uece rzum qrgg"
+    // Mot de passe d'application Gmail
+    private const val APP_PASSWORD = "dtut dinm xpmj xivt"
 
-    // Envoyer le code de vérification de 6 chiffres
+    // Envoyer le code OTP de 6 chiffres
     fun sendResetCode(toEmail: String, code: String) {
 
-        // Configuration du serveur SMTP Gmail
+        // Configuration SMTP Gmail
         val properties = Properties().apply {
             put("mail.smtp.auth", "true")
             put("mail.smtp.starttls.enable", "true")
@@ -34,19 +34,23 @@ object EmailService {
             put("mail.smtp.writetimeout", "10000")
         }
 
-        // Authentification avec Gmail
+        // Authentification Gmail
         val session = Session.getInstance(
             properties,
             object : Authenticator() {
-                override fun getPasswordAuthentication() =
-                    PasswordAuthentication(
+                override fun getPasswordAuthentication(): PasswordAuthentication {
+                    return PasswordAuthentication(
                         GMAIL,
                         APP_PASSWORD.replace(" ", "")
                     )
+                }
             }
         )
 
-        // Construire l'email
+        // Afficher les détails SMTP pour les tests
+        session.debug = true
+
+        // Préparer le message
         val message = MimeMessage(session).apply {
 
             setFrom(InternetAddress(GMAIL))
@@ -61,12 +65,11 @@ object EmailService {
                 "UTF-8"
             )
 
-            // Corps de l'email : code OTP sans lien
             setText(
                 """
                 Bonjour,
 
-                 Vous avez demandé la réinitialisation
+                Vous avez demandé la réinitialisation
                 de votre mot de passe Fi Thnitek.
 
                 Votre code de vérification est :
@@ -87,8 +90,18 @@ object EmailService {
         }
 
         // Envoyer l'email
-        println("📧 Envoi de l'e-mail via SMTP Gmail ($GMAIL) vers $toEmail...")
-        Transport.send(message)
-        println("📧 E-mail transmis au serveur SMTP avec succès !")
+        try {
+            println("Envoi OTP via $GMAIL vers $toEmail...")
+
+            Transport.send(message)
+
+            println("Email accepté par le serveur SMTP Gmail !")
+
+        } catch (e: Exception) {
+            System.err.println(
+                "Erreur SMTP : ${e.javaClass.simpleName} - ${e.message}"
+            )
+            throw e
+        }
     }
 }

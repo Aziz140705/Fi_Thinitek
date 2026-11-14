@@ -1,3 +1,4 @@
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -5,6 +6,14 @@ plugins {
     alias(libs.plugins.android.application) apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
 }
+
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+val cartoApiKey = localProperties.getProperty("CARTO_API_KEY", "")
 
 group = "com"
 version = "1.0.0-SNAPSHOT"
