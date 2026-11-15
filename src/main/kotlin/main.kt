@@ -1,15 +1,17 @@
-
 package com
 
 import com.fithnitek.config.DatabaseFactory
-import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-fun main(args: Array<String>) {
-    EngineMain.main(args)
+fun main() {
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        module()
+    }.start(wait = true)
 }
 
 fun Application.module() {
@@ -19,7 +21,7 @@ fun Application.module() {
         json(Json {
             prettyPrint = true
             isLenient = true
-            ignoreUnknownKeys = false
+            ignoreUnknownKeys = true
         })
     }
 
