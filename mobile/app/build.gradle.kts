@@ -14,7 +14,7 @@ val cartoApiKey = localProperties.getProperty("CARTO_API_KEY", "cb1_56hc_1_ecb9e
 
 // Adresse du backend Ktor. Pour la changer SANS modifier le code Kotlin, ajoutez dans
 // mobile/local.properties :   API_BASE_URL=http://192.168.1.16:8080/
-val apiBaseUrl = localProperties.getProperty("API_BASE_URL", "http://TON_IP:8080/")
+val apiBaseUrl = localProperties.getProperty("API_BASE_URL", "http://10.0.2.2:8080/")
 
 android {
     namespace = "com.example.fithnitekmobile"
