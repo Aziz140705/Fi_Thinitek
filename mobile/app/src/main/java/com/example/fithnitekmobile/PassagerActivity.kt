@@ -7,23 +7,25 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.core.view.GravityCompat
 import com.example.fithnitekmobile.databinding.ActivityPassagerBinding
-import org.json.JSONObject
+import com.example.fithnitekmobile.util.GeoPoint
+import com.example.fithnitekmobile.util.GeoUtils
+import com.example.fithnitekmobile.util.Resource
+import com.example.fithnitekmobile.viewmodel.AuthViewModel
+import com.example.fithnitekmobile.viewmodel.PassagerViewModel
+import com.example.fithnitekmobile.viewmodel.ReservationMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.Icon
 import org.maplibre.android.annotations.IconFactory
-import org.maplibre.android.annotations.Marker
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
 import org.maplibre.android.camera.CameraPosition
@@ -41,64 +43,98 @@ import org.maplibre.android.style.layers.PropertyFactory.fillExtrusionBase
 import org.maplibre.android.style.layers.PropertyFactory.fillExtrusionColor
 import org.maplibre.android.style.layers.PropertyFactory.fillExtrusionHeight
 import org.maplibre.android.style.layers.PropertyFactory.fillExtrusionOpacity
-import kotlin.math.cos
-import kotlin.math.sqrt
 
-class PassagerActivity : AppCompatActivity() {
+// VIEW de l'accueil passager : carte + formulaire de recherche + menu.
+// Elle n'appelle plus Retrofit ni SharedPreferences : tout passe par les ViewModels.
+//  - AuthViewModel     : session, rôle, déconnexion, "devenir conducteur"
+//  - PassagerViewModel : départ / destination / trajets disponibles / compatibilité
+class PassagerActivity : BaseActivity() {
 
     private lateinit var binding: ActivityPassagerBinding
+    private val authViewModel: AuthViewModel by viewModels { viewModelFactory }
+    private val viewModel: PassagerViewModel by viewModels { viewModelFactory }
+
     private var mapLibreMap: MapLibreMap? = null
-
-    private var selectionMode = "depart" // depart ou destination
-    private var departMarker: Marker? = null
-    private var destMarker: Marker? = null
+    private var mapStarted = false   // true seulement si binding.map.onCreate() a été appelé
     private var isMapExpanded = false
-
     private var cachedDepartIcon: Icon? = null
     private var cachedDestIcon: Icon? = null
     private var cachedUserIcon: Icon? = null
 
-    private var pointX = LatLng(36.8000, 10.1800)
-    private var pointY = LatLng(36.8500, 10.2200)
-    private val pointZ = LatLng(36.8150, 10.1950)
+    private var currentRole = "PASSAGER"
 
     // Gestionnaire de demandes de permissions de géolocalisation
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
-        val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
-
-        if (fineLocationGranted || coarseLocationGranted) {
-            mapLibreMap?.style?.let { style ->
-                enableLocationComponent(style)
-            }
+        val fine = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarse = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        if (fine || coarse) {
+            mapLibreMap?.style?.let { enableLocationComponent(it) }
         } else {
-            Toast.makeText(this, "Permission de localisation refusée", Toast.LENGTH_SHORT).show()
+            toast("Permission de localisation refusée")
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         MapLibre.getInstance(this)
 
         binding = ActivityPassagerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val session = getSharedPreferences("FiThnitekSession", MODE_PRIVATE)
-        val token = session.getString("token", null)
-        val role = session.getString("role", "PASSAGER") ?: "PASSAGER"
-
-        if (token.isNullOrBlank() || isTokenExpired(token)) {
-            session.edit { clear() }
-            val intent = Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-            finish()
+        // Pas de session valide : retour à l'accueil (le ViewModel a déjà vérifié l'expiration du token)
+        val user = authViewModel.authenticatedUser.value
+        if (user == null) {
+            goToWelcome()
             return
         }
+        renderRole(user.role)
+
+        binding.map.onCreate(savedInstanceState)
+        mapStarted = true
+        initMap()
+        setupButtons()
+        setupOnBackPressed()
+        observeViewModels()
+
+        // Charge les vrais trajets publiés par les conducteurs
+        viewModel.loadTrajetsDisponibles()
+    }
+
+    // ------------------------------------------------------------------
+    // Observation des ViewModels
+    // ------------------------------------------------------------------
+    private fun observeViewModels() {
+        // Session : si elle disparaît (déconnexion, token expiré) on quitte l'écran ;
+        // si le rôle change (devenir conducteur) l'affichage est mis à jour.
+        authViewModel.authenticatedUser.observe(this) { user ->
+            if (user == null) goToWelcome() else renderRole(user.role)
+        }
+
+        authViewModel.conducteurResult.observe(this) { event ->
+            when (val state = event.getContentIfNotHandled()) {
+                is Resource.Success -> {
+                    toast("Vous êtes maintenant conducteur 🚗", long = true)
+                    startActivity(Intent(this, MesTrajetsActivity::class.java))
+                }
+                is Resource.Error -> showError(state)
+                else -> Unit
+            }
+        }
+
+        viewModel.mapInfo.observe(this) { info ->
+            binding.tvMapInfo.text = info.text
+            binding.tvMapInfo.setTextColor(if (info.positive) Color.rgb(21, 128, 61) else Color.RED)
+        }
+
+        // Dès que les données de la carte changent, on la redessine
+        viewModel.trajets.observe(this) { redrawRouteAndMarkers() }
+        viewModel.passagerPosition.observe(this) { redrawRouteAndMarkers() }
+    }
+
+    private fun renderRole(role: String) {
+        currentRole = role
 
         binding.tvRolePill.text = when (role) {
             "CONDUCTEUR" -> "Conducteur"
@@ -109,21 +145,18 @@ class PassagerActivity : AppCompatActivity() {
 
         try {
             val headerView = binding.navView.getHeaderView(0)
-            val tvHeaderBienvenue = headerView?.findViewById<TextView>(R.id.tvHeaderBienvenue)
-            tvHeaderBienvenue?.text = "Bienvenue, $role !"
+            headerView?.findViewById<TextView>(R.id.tvHeaderBienvenue)?.text = "Bienvenue, $role !"
         } catch (e: Exception) {
             Log.e("FiThnitek", "Header view error", e)
         }
 
-        if (role == "CONDUCTEUR") {
-            binding.btnPasserConducteur.text = "Espace Conducteur 🚗"
-        }
-
-        binding.map.onCreate(savedInstanceState)
-        initMap()
-        setupButtons()
+        binding.btnPasserConducteur.text =
+            if (role == "CONDUCTEUR") "Espace Conducteur 🚗" else "Passer à un compte conducteur 🚗"
     }
 
+    // ------------------------------------------------------------------
+    // Carte (code d'origine conservé ; l'état vient maintenant du ViewModel)
+    // ------------------------------------------------------------------
     private fun initMap() {
         binding.map.getMapAsync { map ->
             mapLibreMap = map
@@ -149,8 +182,9 @@ class PassagerActivity : AppCompatActivity() {
     }
 
     private fun setupMapContent(map: MapLibreMap, style: Style) {
+        val position = viewModel.passagerPosition.value ?: GeoPoint(36.8150, 10.1950)
         map.cameraPosition = CameraPosition.Builder()
-            .target(pointZ)
+            .target(LatLng(position.lat, position.lng))
             .zoom(13.5)
             .tilt(45.0)
             .bearing(0.0)
@@ -175,45 +209,48 @@ class PassagerActivity : AppCompatActivity() {
             Log.e("FiThnitekMap", "Bâtiments 3D non disponibles", e)
         }
 
-        map.addOnMapClickListener { tappedPoint ->
-            handleMapTap(tappedPoint)
-            true
-        }
-        map.addOnMapLongClickListener { tappedPoint ->
-            selectionMode = "destination"
-            handleMapTap(tappedPoint)
+        map.addOnMapClickListener { tapped ->
+            handleMapTap(tapped)
             true
         }
 
-        Log.i("FiThnitekMap", "Carte CARTO Voyager chargée avec succès")
+        // Appui long = on fixe directement la destination
+        map.addOnMapLongClickListener { tapped ->
+            viewModel.selectDestination()
+            handleMapTap(tapped)
+            true
+        }
     }
 
     private fun enableLocationComponent(style: Style) {
         val map = mapLibreMap ?: return
 
-        val hasFinePermission = ContextCompat.checkSelfPermission(
+        val hasFine = ContextCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarsePermission = ContextCompat.checkSelfPermission(
+        val hasCoarse = ContextCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (hasFinePermission || hasCoarsePermission) {
+        if (hasFine || hasCoarse) {
             try {
                 val locationComponent = map.locationComponent
-                val locationComponentOptions = LocationComponentOptions.builder(this)
+                val options = LocationComponentOptions.builder(this)
                     .foregroundDrawable(R.drawable.ic_user_location_pin)
                     .build()
-
-                val activationOptions = LocationComponentActivationOptions.builder(this, style)
-                    .locationComponentOptions(locationComponentOptions)
+                val activation = LocationComponentActivationOptions.builder(this, style)
+                    .locationComponentOptions(options)
                     .build()
 
-                locationComponent.activateLocationComponent(activationOptions)
+                locationComponent.activateLocationComponent(activation)
                 locationComponent.isLocationComponentEnabled = true
                 locationComponent.cameraMode = CameraMode.NONE
                 locationComponent.renderMode = RenderMode.COMPASS
+
+                // Vraie position GPS du passager (si disponible) -> ViewModel
+                locationComponent.lastKnownLocation?.let {
+                    viewModel.setPassagerPosition(GeoPoint(it.latitude, it.longitude))
+                }
             } catch (e: Exception) {
                 Log.e("FiThnitekMap", "Erreur activation composant localisation", e)
             }
@@ -227,24 +264,18 @@ class PassagerActivity : AppCompatActivity() {
         }
     }
 
+    // Le ViewModel décide quoi faire du clic ; la View affiche le résultat
     private fun handleMapTap(tapped: LatLng) {
         if (mapLibreMap == null) return
 
-        val latFormatted = String.format("%.4f", tapped.latitude)
-        val lngFormatted = String.format("%.4f", tapped.longitude)
-
-        if (selectionMode == "depart") {
-            pointX = tapped
-            binding.etDepart.setText("Départ : $latFormatted, $lngFormatted")
-            Toast.makeText(this, "📍 Départ fixé ($latFormatted, $lngFormatted)", Toast.LENGTH_SHORT).show()
-            selectionMode = "destination"
+        val tap = viewModel.onMapTapped(GeoPoint(tapped.latitude, tapped.longitude))
+        if (tap.isDepart) {
+            binding.etDepart.setText(tap.label)
+            toast("📍 Départ fixé : ${tap.label}")
         } else {
-            pointY = tapped
-            binding.etDestination.setText("Destination : $latFormatted, $lngFormatted")
-            Toast.makeText(this, "🏁 Destination fixée ($latFormatted, $lngFormatted)", Toast.LENGTH_SHORT).show()
-            selectionMode = "depart"
+            binding.etDestination.setText(tap.label)
+            toast("🏁 Destination fixée : ${tap.label}")
         }
-
         redrawRouteAndMarkers()
     }
 
@@ -275,130 +306,127 @@ class PassagerActivity : AppCompatActivity() {
 
     private fun redrawRouteAndMarkers() {
         val map = mapLibreMap ?: return
-
         map.clear()
         initIcons()
 
-        val distKm = calculateDistanceKm(pointX, pointY)
-        val distText = String.format("%.1f km", distKm)
-
-        val departOptions = MarkerOptions()
-            .position(pointX)
-            .title("📍 Point de Départ")
-            .snippet("Lat: ${String.format("%.4f", pointX.latitude)}, Lng: ${String.format("%.4f", pointX.longitude)}")
-
-        cachedDepartIcon?.let { departOptions.icon(it) }
-        departMarker = map.addMarker(departOptions)
-
-        val destOptions = MarkerOptions()
-            .position(pointY)
-            .title("🏁 Destination")
-            .snippet("Distance estimée: $distText")
-
-        cachedDestIcon?.let { destOptions.icon(it) }
-        destMarker = map.addMarker(destOptions)
-
-        val userOptions = MarkerOptions()
-            .position(pointZ)
-            .title("👤 Votre Position (Passager)")
-            .snippet("Vous êtes actuellement dans cette zone")
-
-        cachedUserIcon?.let { userOptions.icon(it) }
-        map.addMarker(userOptions)
-
-        map.addPolyline(
-            PolylineOptions()
-                .add(pointX, pointY)
-                .color(Color.parseColor("#E10600"))
-                .width(6f)
-        )
-
-        updateCompatibility()
-    }
-
-    private fun calculateDistanceKm(p1: LatLng, p2: LatLng): Double {
-        val lat1 = Math.toRadians(p1.latitude)
-        val lon1 = Math.toRadians(p1.longitude)
-        val lat2 = Math.toRadians(p2.latitude)
-        val lon2 = Math.toRadians(p2.longitude)
-
-        val dLat = lat2 - lat1
-        val dLon = lon2 - lon1
-
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return 6371.0 * c
-    }
-
-    private fun updateCompatibility() {
-        val compatible = isOnRoute(pointZ, pointX, pointY, 3000.0)
-        val distKm = calculateDistanceKm(pointX, pointY)
-        binding.tvMapInfo.text = if (compatible) {
-            "✅ Trajet compatible (~${String.format("%.1f", distKm)} km)"
-        } else {
-            "❌ Trajet non compatible (> 5km détour)"
+        // 1) Trajets réellement publiés par les conducteurs (lignes vertes)
+        viewModel.trajets.value.orEmpty().filter { it.hasCoordinates }.forEach { t ->
+            map.addPolyline(
+                PolylineOptions()
+                    .add(LatLng(t.departLat!!, t.departLng!!), LatLng(t.destLat!!, t.destLng!!))
+                    .color(Color.parseColor("#15803D"))
+                    .width(3f)
+            )
         }
-        binding.tvMapInfo.setTextColor(if (compatible) Color.rgb(21, 128, 61) else Color.RED)
+
+        val depart = viewModel.depart.value
+        val destination = viewModel.destination.value
+
+        // 2) Départ choisi par le passager
+        if (depart != null) {
+            val options = MarkerOptions()
+                .position(LatLng(depart.lat, depart.lng))
+                .title("📍 Point de Départ")
+                .snippet(viewModel.departLabel ?: "")
+            cachedDepartIcon?.let { options.icon(it) }
+            map.addMarker(options)
+        }
+
+        // 3) Destination choisie
+        if (destination != null) {
+            val distText = if (depart != null)
+                "Distance estimée: %.1f km".format(GeoUtils.haversineKm(depart, destination)) else ""
+            val options = MarkerOptions()
+                .position(LatLng(destination.lat, destination.lng))
+                .title("🏁 Destination")
+                .snippet(distText)
+            cachedDestIcon?.let { options.icon(it) }
+            map.addMarker(options)
+        }
+
+        // 4) Position du passager
+        viewModel.passagerPosition.value?.let { p ->
+            val options = MarkerOptions()
+                .position(LatLng(p.lat, p.lng))
+                .title("👤 Votre Position (Passager)")
+                .snippet("Vous êtes actuellement dans cette zone")
+            cachedUserIcon?.let { options.icon(it) }
+            map.addMarker(options)
+        }
+
+        // 5) Ligne rouge du trajet souhaité par le passager
+        if (depart != null && destination != null) {
+            map.addPolyline(
+                PolylineOptions()
+                    .add(LatLng(depart.lat, depart.lng), LatLng(destination.lat, destination.lng))
+                    .color(Color.parseColor("#E10600"))
+                    .width(6f)
+            )
+        }
     }
 
+    // ------------------------------------------------------------------
+    // Boutons et menu
+    // ------------------------------------------------------------------
     private fun setupButtons() {
-
-        binding.btnMenu.setOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        binding.btnProfil.setOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.START)
-        }
+        binding.btnMenu.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
+        binding.btnProfil.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
 
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             when (menuItem.itemId) {
-                R.id.nav_accueil, R.id.nav_rechercher -> {
-                    Toast.makeText(this, "Accueil Carte", Toast.LENGTH_SHORT).show()
+                R.id.nav_accueil -> true
+
+                R.id.nav_rechercher -> {
+                    startActivity(RechercheActivity.newIntent(this, viewModel.buildSearchParams("", "")))
                     true
                 }
+
                 R.id.nav_reservations -> {
-                    Toast.makeText(this, "Mes réservations - à développer", Toast.LENGTH_SHORT).show()
+                    openReservations(ReservationMode.PASSAGER)
                     true
                 }
+
                 R.id.nav_trajets -> {
-                    Toast.makeText(this, "Mes trajets - à développer", Toast.LENGTH_SHORT).show()
+                    showPasserConducteur()
                     true
                 }
+
+                R.id.nav_demandes -> {
+                    if (currentRole == "CONDUCTEUR") openReservations(ReservationMode.CONDUCTEUR)
+                    else showPasserConducteur()
+                    true
+                }
+
                 R.id.nav_passer_conducteur, R.id.nav_dossier -> {
                     showPasserConducteur()
                     true
                 }
+
                 R.id.nav_profil -> {
-                    Toast.makeText(this, "Profil - à développer", Toast.LENGTH_SHORT).show()
+                    toast("Profil - à développer")
                     true
                 }
+
                 R.id.nav_parametres -> {
-                    Toast.makeText(this, "Paramètres - à développer", Toast.LENGTH_SHORT).show()
+                    toast("Paramètres - à développer")
                     true
                 }
+
                 R.id.nav_deconnexion -> {
-                    val session = getSharedPreferences("FiThnitekSession", MODE_PRIVATE)
-                    session.edit { clear() }
-                    startActivity(Intent(this, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    })
-                    finish()
+                    authViewModel.logout()   // l'observer de la session ramène à l'accueil
                     true
                 }
+
                 else -> false
             }
         }
 
-        binding.btnPasserConducteur.setOnClickListener {
-            showPasserConducteur()
-        }
+        binding.btnPasserConducteur.setOnClickListener { showPasserConducteur() }
 
         binding.btnLocaliser.setOnClickListener {
             val map = mapLibreMap ?: return@setOnClickListener
+
             val lastLocation = try {
                 if (map.locationComponent.isLocationComponentActivated) {
                     map.locationComponent.lastKnownLocation
@@ -409,27 +437,24 @@ class PassagerActivity : AppCompatActivity() {
 
             if (lastLocation != null) {
                 val userPos = LatLng(lastLocation.latitude, lastLocation.longitude)
+                viewModel.setPassagerPosition(GeoPoint(userPos.latitude, userPos.longitude))
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(userPos, 15.0))
-                Toast.makeText(this, "Ma position GPS actuelle", Toast.LENGTH_SHORT).show()
+                toast("Ma position GPS actuelle")
             } else {
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(pointZ, 15.0))
-                mapLibreMap?.style?.let { style ->
-                    enableLocationComponent(style)
-                }
+                val p = viewModel.passagerPosition.value ?: GeoPoint(36.8150, 10.1950)
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(p.lat, p.lng), 15.0))
+                mapLibreMap?.style?.let { enableLocationComponent(it) }
             }
         }
 
         binding.btnZoomIn.setOnClickListener {
             mapLibreMap?.let { map ->
-                val current = map.cameraPosition
-                map.animateCamera(CameraUpdateFactory.zoomTo(current.zoom + 1.0))
+                map.animateCamera(CameraUpdateFactory.zoomTo(map.cameraPosition.zoom + 1.0))
             }
         }
-
         binding.btnZoomOut.setOnClickListener {
             mapLibreMap?.let { map ->
-                val current = map.cameraPosition
-                map.animateCamera(CameraUpdateFactory.zoomTo(current.zoom - 1.0))
+                map.animateCamera(CameraUpdateFactory.zoomTo(map.cameraPosition.zoom - 1.0))
             }
         }
 
@@ -437,20 +462,22 @@ class PassagerActivity : AppCompatActivity() {
             isMapExpanded = !isMapExpanded
             if (isMapExpanded) {
                 binding.cardPassengerRide.visibility = View.GONE
-                Toast.makeText(this, "Carte plein écran - touchez pour sélectionner", Toast.LENGTH_SHORT).show()
+                toast("Carte plein écran - touchez pour sélectionner")
             } else {
                 binding.cardPassengerRide.visibility = View.VISIBLE
-                Toast.makeText(this, "Carte réduite", Toast.LENGTH_SHORT).show()
+                toast("Carte réduite")
             }
         }
 
+        // Le champ actif décide si le prochain clic sur la carte fixe le départ ou la destination
         binding.etDepart.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) selectionMode = "depart"
+            if (hasFocus) viewModel.selectingDepart = true
         }
         binding.etDestination.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) selectionMode = "destination"
+            if (hasFocus) viewModel.selectingDepart = false
         }
 
+        // US Sprint 2 : lancer la recherche de trajets
         binding.btnRechercher.setOnClickListener {
             val depart = binding.etDepart.text.toString().trim()
             val destination = binding.etDestination.text.toString().trim()
@@ -467,151 +494,95 @@ class PassagerActivity : AppCompatActivity() {
             }
             binding.tilDestination.error = null
 
-            Toast.makeText(this, "Recherche de trajets en cours...", Toast.LENGTH_SHORT).show()
+            startActivity(RechercheActivity.newIntent(this, viewModel.buildSearchParams(depart, destination)))
         }
 
-        binding.btnMesReservations.setOnClickListener {
-            Toast.makeText(this, "Mes réservations bientôt disponibles", Toast.LENGTH_SHORT).show()
-        }
+        binding.btnMesReservations.setOnClickListener { openReservations(ReservationMode.PASSAGER) }
 
-        binding.btnDeconnexion.setOnClickListener {
-            val session = getSharedPreferences("FiThnitekSession", MODE_PRIVATE)
-            session.edit { clear() }
-
-            val intent = Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-
-            startActivity(intent)
-            finish()
-        }
+        binding.btnDeconnexion.setOnClickListener { authViewModel.logout() }
     }
 
+    private fun openReservations(mode: ReservationMode) {
+        startActivity(Intent(this, ReservationsActivity::class.java).apply {
+            putExtra(ReservationsActivity.EXTRA_MODE, mode.name)
+        })
+    }
+
+    // Conducteur : ouvre son espace. Passager : propose de devenir conducteur.
     private fun showPasserConducteur() {
-        val role = getSharedPreferences("FiThnitekSession", MODE_PRIVATE).getString("role", "PASSAGER")
-        if (role == "CONDUCTEUR") {
-            Toast.makeText(this, "Tu es déjà Conducteur - Espace Conducteur à développer", Toast.LENGTH_SHORT).show()
+        if (currentRole == "CONDUCTEUR") {
+            startActivity(Intent(this, MesTrajetsActivity::class.java))
             return
         }
 
         AlertDialog.Builder(this)
             .setTitle("Passer à un compte conducteur 🚗")
             .setMessage(
-                "Étapes RG06 :\n\n" +
-                        "1. PAYER - Frais d'activation (ex: 20 DT) - à développer avec paiement\n" +
-                        "2. METTRE TON DOSSIER :\n" +
-                        "   • CIN recto / verso (confidentiel)\n" +
-                        "   • Permis de conduire\n" +
-                        "   • Carte grise\n" +
-                        "   • Assurance\n" +
-                        "   • Photo voiture + nb places + nb sièges enfant (RG09)\n\n" +
-                        "3. EN ATTENTE - Admin vérifie ton dossier\n" +
-                        "   PENDING -> VALIDATED / REJECTED\n\n" +
-                        "Tu veux commencer ?"
+                "Pour publier des trajets, il faut un compte conducteur.\n\n" +
+                        "Sprint 2 : le passage est immédiat et gratuit.\n\n" +
+                        "Sprint 3 (prévu) :\n" +
+                        "1. Paiement des frais d'activation\n" +
+                        "2. Dépôt du dossier (CIN, permis, carte grise, assurance, photo voiture)\n" +
+                        "3. Validation par l'administrateur (PENDING -> VALIDATED / REJECTED)\n\n" +
+                        "Devenir conducteur maintenant ?"
             )
-            .setPositiveButton("Payer puis déposer dossier") { _, _ ->
-                Toast.makeText(this, "Paiement + Dossier - à développer (Sprint 3)", Toast.LENGTH_LONG).show()
-            }
+            .setPositiveButton("Devenir conducteur") { _, _ -> authViewModel.devenirConducteur() }
             .setNegativeButton("Plus tard", null)
             .show()
     }
 
-    private fun isOnRoute(
-        point: LatLng,
-        start: LatLng,
-        end: LatLng,
-        maxDistanceMeters: Double
-    ): Boolean {
-        val lat1 = Math.toRadians(start.latitude)
-        val lon1 = Math.toRadians(start.longitude)
-        val lat2 = Math.toRadians(end.latitude)
-        val lon2 = Math.toRadians(end.longitude)
-        val latP = Math.toRadians(point.latitude)
-        val lonP = Math.toRadians(point.longitude)
-
-        val averageLatitude = (lat1 + lat2) / 2.0
-        val x = (lon2 - lon1) * cos(averageLatitude)
-        val y = lat2 - lat1
-
-        val px = (lonP - lon1) * cos(averageLatitude)
-        val py = latP - lat1
-
-        val lengthSquared = x * x + y * y
-        if (lengthSquared == 0.0) return false
-
-        val t = ((px * x + py * y) / lengthSquared).coerceIn(0.0, 1.0)
-        val closestX = x * t
-        val closestY = y * t
-
-        val dx = px - closestX
-        val dy = py - closestY
-
-        val distance = sqrt(dx * dx + dy * dy) * 6371000.0
-        return distance <= maxDistanceMeters
-    }
-
-    private fun isTokenExpired(token: String): Boolean {
-        return try {
-            val parts = token.split(".")
-            if (parts.size != 3) return true
-
-            val decoded = Base64.decode(
-                parts[1],
-                Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
-            )
-
-            val payload = JSONObject(String(decoded, Charsets.UTF_8))
-            val exp = payload.getLong("exp")
-            val currentTime = System.currentTimeMillis() / 1000L
-
-            currentTime >= exp
-        } catch (e: Exception) {
-            Log.e("FiThnitekSession", "Erreur de vérification du token", e)
-            true
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (::binding.isInitialized && binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
+    // ------------------------------------------------------------------
+    // Cycle de vie de la carte
+    // ------------------------------------------------------------------
+    private fun setupOnBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (::binding.isInitialized && binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     override fun onStart() {
         super.onStart()
-        if (::binding.isInitialized) binding.map.onStart()
+        if (mapStarted) binding.map.onStart()
     }
 
     override fun onResume() {
         super.onResume()
-        if (::binding.isInitialized) binding.map.onResume()
+        if (mapStarted) {
+            binding.map.onResume()
+            // Revenir de "Mes trajets" : les trajets / places ont pu changer
+            viewModel.loadTrajetsDisponibles()
+        }
     }
 
     override fun onPause() {
-        if (::binding.isInitialized) binding.map.onPause()
+        if (mapStarted) binding.map.onPause()
         super.onPause()
     }
 
     override fun onStop() {
-        if (::binding.isInitialized) binding.map.onStop()
+        if (mapStarted) binding.map.onStop()
         super.onStop()
     }
 
     override fun onDestroy() {
-        if (::binding.isInitialized) binding.map.onDestroy()
+        if (mapStarted) binding.map.onDestroy()
         super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (::binding.isInitialized) binding.map.onSaveInstanceState(outState)
+        if (mapStarted) binding.map.onSaveInstanceState(outState)
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        if (::binding.isInitialized) binding.map.onLowMemory()
+        if (mapStarted) binding.map.onLowMemory()
     }
 }

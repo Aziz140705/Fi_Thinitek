@@ -2,21 +2,17 @@ package com.example.fithnitekmobile
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.viewModels
 import com.example.fithnitekmobile.databinding.ActivityLoginBinding
-import com.example.fithnitekmobile.network.LoginRequest
-import com.example.fithnitekmobile.network.LoginResponse
-import com.example.fithnitekmobile.network.RetrofitClient
-import com.google.gson.JsonParser
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.fithnitekmobile.util.FormField
+import com.example.fithnitekmobile.util.Resource
+import com.example.fithnitekmobile.viewmodel.AuthViewModel
 
-class LoginActivity : AppCompatActivity() {
+// VIEW : affiche l'écran, envoie les actions au ViewModel et observe ses résultats.
+class LoginActivity : BaseActivity() {
 
     private lateinit var binding: ActivityLoginBinding
+    private val viewModel: AuthViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,135 +20,56 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Retour à l'accueil
-        binding.btnRetourAccueil.setOnClickListener {
-            finish()
-        }
+        binding.btnRetourAccueil.setOnClickListener { finish() }
 
-        // US04 : Ouvrir la page Mot de passe oublié
+        // US04 : mot de passe oublié
         binding.tvForgotPassword.setOnClickListener {
-            val intent = Intent(
-                this,
-                ForgotPasswordActivity::class.java
-            )
-            startActivity(intent)
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
 
-        // US02 : Bouton connexion
+        // US02 : le ViewModel valide puis appelle le repository
         binding.btnLogin.setOnClickListener {
-
-            val email = binding.etEmail.text.toString().trim()
-            val password = binding.etPassword.text.toString()
-
-            when {
-                email.isBlank() ->
-                    binding.etEmail.error = "Email obligatoire"
-
-                password.isBlank() ->
-                    binding.etPassword.error = "Mot de passe obligatoire"
-
-                else -> loginUser(LoginRequest(email, password))
-            }
+            viewModel.login(
+                email = binding.etEmail.text.toString(),
+                password = binding.etPassword.text.toString()
+            )
         }
+
+        observeViewModel()
     }
 
-    private fun loginUser(request: LoginRequest) {
+    private fun observeViewModel() {
+        viewModel.formError.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { error ->
+                when (error.field) {
+                    FormField.EMAIL -> binding.etEmail.error = error.message
+                    FormField.PASSWORD -> binding.etPassword.error = error.message
+                    else -> toast(error.message)
+                }
+            }
+        }
 
-        binding.btnLogin.isEnabled = false
+        viewModel.loginResult.observe(this) { event ->
+            when (val state = event.getContentIfNotHandled()) {
+                Resource.Loading -> binding.btnLogin.isEnabled = false
 
-        // Appel du backend Ktor
-        RetrofitClient.api.login(request)
-            .enqueue(object : Callback<LoginResponse> {
-
-                override fun onResponse(
-                    call: Call<LoginResponse>,
-                    response: Response<LoginResponse>
-                ) {
-                    if (isFinishing || isDestroyed) return
-
+                is Resource.Success -> {
                     binding.btnLogin.isEnabled = true
-                    val result = response.body()
-
-                    if (response.isSuccessful &&
-                        result?.success == true &&
-                        !result.token.isNullOrBlank()
-                    ) {
-
-                        // Enregistrer la session utilisateur
-                        val session = getSharedPreferences(
-                            "FiThnitekSession",
-                            MODE_PRIVATE
-                        )
-
-                        session.edit()
-                            .putString("token", result.token)
-                            .putInt("idUser", result.idUser ?: -1)
-                            .putString("role", result.role)
-                            .apply()
-
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Connexion réussie !",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        val intent = Intent(
-                            this@LoginActivity,
-                            PassagerActivity::class.java
-                        )
-
-                        intent.flags =
-                            Intent.FLAG_ACTIVITY_NEW_TASK or
-                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                        startActivity(intent)
-                        finish()
-
-                    } else {
-                        var serverMsg: String? = null
-                        try {
-                            val errorBody = response.errorBody()?.string()
-                            if (!errorBody.isNullOrBlank()) {
-                                val json = JsonParser.parseString(errorBody).asJsonObject
-                                if (json.has("message")) {
-                                    serverMsg = json.get("message").asString
-                                }
-                            }
-                        } catch (_: Exception) {
-                        }
-
-                        val message = serverMsg ?: when (response.code()) {
-                            401 -> "Email ou mot de passe incorrect"
-                            400 -> "Informations invalides"
-                            500 -> "Erreur serveur (500) : Vérifiez que le serveur Ktor et MySQL sont démarrés"
-                            else -> "Erreur serveur : ${response.code()}"
-                        }
-
-                        Toast.makeText(
-                            this@LoginActivity,
-                            message,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    toast("Connexion réussie !")
+                    startActivity(Intent(this, PassagerActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    })
+                    finish()
                 }
 
-                override fun onFailure(
-                    call: Call<LoginResponse>,
-                    t: Throwable
-                ) {
-                    if (isFinishing || isDestroyed) return
-
+                is Resource.Error -> {
                     binding.btnLogin.isEnabled = true
-                    val detail = t.localizedMessage ?: t.message ?: "Réseau indisponible"
-
-                    Log.e("FiThnitekLogin", "Echec connexion réseau Ktor", t)
-
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Impossible de contacter le serveur Ktor ($detail).\nS'assurer que le backend Ktor est lancé sur http://localhost:8080",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    // Ici 401 = mauvais identifiants (pas une session expirée) : simple Toast
+                    toast(state.message, long = true)
                 }
-            })
+
+                null -> Unit // événement déjà consommé
+            }
+        }
     }
 }

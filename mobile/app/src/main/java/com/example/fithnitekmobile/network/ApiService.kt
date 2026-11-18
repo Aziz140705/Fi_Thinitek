@@ -1,97 +1,92 @@
-
 package com.example.fithnitekmobile.network
 
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 
-// US01 : Inscription
-data class RegisterRequest(
-    val nom: String,
-    val prenom: String,
-    val email: String,
-    val password: String,
-    val telephone: String?
-)
-
-data class RegisterResponse(
-    val success: Boolean,
-    val message: String,
-    val idUser: Int? = null
-)
-
-// US02 : Connexion
-data class LoginRequest(
-    val email: String,
-    val password: String
-)
-
-data class LoginResponse(
-    val success: Boolean,
-    val message: String,
-    val token: String? = null,
-    val idUser: Int? = null,
-    val role: String? = null
-)
-
-// US04 : Demande de code OTP
-data class ForgotPasswordRequest(
-    val email: String
-)
-
-data class ForgotPasswordResponse(
-    val success: Boolean,
-    val message: String
-)
-
-// US04 : Vérification du code
-data class VerifyCodeRequest(
-    val email: String,
-    val code: String
-)
-
-data class VerifyCodeResponse(
-    val success: Boolean,
-    val message: String,
-    val resetTicket: String? = null
-)
-
-// US04 : Nouveau mot de passe
-data class ResetPasswordRequest(
-    val resetTicket: String,
-    val newPassword: String
-)
-
-data class ResetPasswordResponse(
-    val success: Boolean,
-    val message: String
-)
-
-// Routes du backend Ktor
+// Routes du backend Ktor.
+// Toutes les fonctions sont "suspend" et renvoient Response<T> :
+// le Repository peut ainsi vérifier response.isSuccessful et lire le code HTTP.
 interface ApiService {
 
+    // ---------- Authentification ----------
+
     @POST("api/auth/register")
-    fun register(
-        @Body request: RegisterRequest
-    ): Call<RegisterResponse>
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
 
     @POST("api/auth/login")
-    fun login(
-        @Body request: LoginRequest
-    ): Call<LoginResponse>
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @POST("api/auth/forgot-password")
-    fun forgotPassword(
-        @Body request: ForgotPasswordRequest
-    ): Call<ForgotPasswordResponse>
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<ForgotPasswordResponse>
 
     @POST("api/auth/verify-code")
-    fun verifyCode(
-        @Body request: VerifyCodeRequest
-    ): Call<VerifyCodeResponse>
+    suspend fun verifyCode(@Body request: VerifyCodeRequest): Response<VerifyCodeResponse>
 
     @POST("api/auth/reset-password")
-    fun resetPassword(
-        @Body request: ResetPasswordRequest
-    ): Call<ResetPasswordResponse>
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
+
+    // Sprint 2 : passer PASSAGER -> CONDUCTEUR (renvoie un nouveau token)
+    @POST("api/users/devenir-conducteur")
+    suspend fun devenirConducteur(): Response<LoginResponse>
+
+    // ---------- Trajets (token JWT obligatoire) ----------
+
+    @POST("api/trajets")
+    suspend fun creerTrajet(@Body request: TrajetRequest): Response<TrajetResponse>
+
+    @GET("api/trajets/mes")
+    suspend fun mesTrajets(): Response<TrajetListResponse>
+
+    // Les paramètres null ne sont pas envoyés par Retrofit
+    @GET("api/trajets/search")
+    suspend fun rechercherTrajets(
+        @Query("depart") depart: String? = null,
+        @Query("destination") destination: String? = null,
+        @Query("date") date: String? = null,
+        @Query("prixMax") prixMax: Double? = null,
+        @Query("placesMin") placesMin: Int? = null,
+        @Query("departLat") departLat: Double? = null,
+        @Query("departLng") departLng: Double? = null,
+        @Query("destLat") destLat: Double? = null,
+        @Query("destLng") destLng: Double? = null,
+        @Query("rayonKm") rayonKm: Double? = null
+    ): Response<TrajetListResponse>
+
+    @GET("api/trajets/{id}")
+    suspend fun detailTrajet(@Path("id") id: Int): Response<TrajetResponse>
+
+    @PUT("api/trajets/{id}")
+    suspend fun modifierTrajet(
+        @Path("id") id: Int,
+        @Body request: TrajetRequest
+    ): Response<TrajetResponse>
+
+    @DELETE("api/trajets/{id}")
+    suspend fun supprimerTrajet(@Path("id") id: Int): Response<MessageResponse>
+
+    // ---------- Réservations (token JWT obligatoire) ----------
+
+    @POST("api/reservations")
+    suspend fun creerReservation(@Body request: ReservationRequest): Response<ReservationResponse>
+
+    @GET("api/reservations/mes")
+    suspend fun mesReservations(): Response<ReservationListResponse>
+
+    @GET("api/reservations/recues")
+    suspend fun reservationsRecues(): Response<ReservationListResponse>
+
+    @PUT("api/reservations/{id}/accepter")
+    suspend fun accepterReservation(@Path("id") id: Int): Response<ReservationResponse>
+
+    @PUT("api/reservations/{id}/refuser")
+    suspend fun refuserReservation(@Path("id") id: Int): Response<ReservationResponse>
+
+    @PUT("api/reservations/{id}/annuler")
+    suspend fun annulerReservation(@Path("id") id: Int): Response<ReservationResponse>
 }

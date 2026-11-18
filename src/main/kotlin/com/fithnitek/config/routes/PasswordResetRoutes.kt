@@ -4,6 +4,7 @@ package com.fithnitek.routes
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fithnitek.config.EmailService
+import com.fithnitek.config.PasswordPolicy
 import com.fithnitek.models.ForgotPasswordRequest
 import com.fithnitek.models.ForgotPasswordResponse
 import com.fithnitek.models.VerifyCodeRequest
@@ -219,13 +220,20 @@ fun Route.passwordResetRoutes() {
             val password = request.newPassword
 
             // Vérifier le ticket et le nouveau mot de passe
-            if (request.resetTicket.isBlank() ||
-                password.length < 8 ||
-                password.toByteArray(Charsets.UTF_8).size > 72
-            ) {
+            if (request.resetTicket.isBlank()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
                     ResetPasswordResponse(false, "Données invalides")
+                )
+                return@post
+            }
+
+            // Mot de passe fort (même règle que l'inscription)
+            val passwordError = PasswordPolicy.validate(password)
+            if (passwordError != null) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ResetPasswordResponse(false, passwordError)
                 )
                 return@post
             }

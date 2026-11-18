@@ -2,20 +2,16 @@ package com.example.fithnitekmobile
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Patterns
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.viewModels
 import com.example.fithnitekmobile.databinding.ActivityForgotPasswordBinding
-import com.example.fithnitekmobile.network.ForgotPasswordRequest
-import com.example.fithnitekmobile.network.ForgotPasswordResponse
-import com.example.fithnitekmobile.network.RetrofitClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.fithnitekmobile.util.FormField
+import com.example.fithnitekmobile.util.Resource
+import com.example.fithnitekmobile.viewmodel.AuthViewModel
 
-class ForgotPasswordActivity : AppCompatActivity() {
+class ForgotPasswordActivity : BaseActivity() {
 
     private lateinit var binding: ActivityForgotPasswordBinding
+    private val viewModel: AuthViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,77 +19,38 @@ class ForgotPasswordActivity : AppCompatActivity() {
         binding = ActivityForgotPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Retour à la connexion
-        binding.tvRetourLogin.setOnClickListener {
-            finish()
+        binding.tvRetourLogin.setOnClickListener { finish() }
+
+        binding.btnEnvoyer.setOnClickListener {
+            viewModel.forgotPassword(binding.etEmail.text.toString())
         }
 
-        // Demander le code par Gmail
-        binding.btnEnvoyer.setOnClickListener {
-
-            val email = binding.etEmail.text.toString().trim()
-
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.etEmail.error = "Adresse email invalide"
-                return@setOnClickListener
+        viewModel.formError.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { error ->
+                if (error.field == FormField.EMAIL) binding.etEmail.error = error.message
+                else toast(error.message)
             }
+        }
 
-            binding.btnEnvoyer.isEnabled = false
+        viewModel.forgotResult.observe(this) { event ->
+            when (val state = event.getContentIfNotHandled()) {
+                Resource.Loading -> binding.btnEnvoyer.isEnabled = false
 
-            RetrofitClient.api.forgotPassword(
-                ForgotPasswordRequest(email)
-            ).enqueue(object : Callback<ForgotPasswordResponse> {
-
-                override fun onResponse(
-                    call: Call<ForgotPasswordResponse>,
-                    response: Response<ForgotPasswordResponse>
-                ) {
-                    if (isFinishing || isDestroyed) return
-
+                is Resource.Success -> {
                     binding.btnEnvoyer.isEnabled = true
-
-                    if (response.isSuccessful &&
-                        response.body()?.success == true
-                    ) {
-                        Toast.makeText(
-                            this@ForgotPasswordActivity,
-                            "Si cet email existe, un code sera envoyé",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        // Passer à l'écran OTP avec l'email
-                        val intent = Intent(
-                            this@ForgotPasswordActivity,
-                            VerifyCodeActivity::class.java
-                        )
-
-                        intent.putExtra("email", email)
-                        startActivity(intent)
-
-                    } else {
-                        Toast.makeText(
-                            this@ForgotPasswordActivity,
-                            "Erreur lors de la demande",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    toast("Si cet email existe, un code sera envoyé", long = true)
+                    startActivity(Intent(this, VerifyCodeActivity::class.java).apply {
+                        putExtra("email", binding.etEmail.text.toString().trim())
+                    })
                 }
 
-                override fun onFailure(
-                    call: Call<ForgotPasswordResponse>,
-                    t: Throwable
-                ) {
-                    if (isFinishing || isDestroyed) return
-
+                is Resource.Error -> {
                     binding.btnEnvoyer.isEnabled = true
-
-                    Toast.makeText(
-                        this@ForgotPasswordActivity,
-                        "Connexion impossible avec le serveur",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    toast(state.message, long = true)
                 }
-            })
+
+                null -> Unit
+            }
         }
     }
 }

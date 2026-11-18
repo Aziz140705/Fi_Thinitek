@@ -84,4 +84,31 @@ object UserRepository {
             }
         }
     }
+
+    // Sprint 2 : lire le rôle actuel (source de vérité = base de données)
+    fun getRole(idUser: Int): String? {
+        return DatabaseFactory.getConnection().use { connection ->
+            connection.prepareStatement(
+                "SELECT role FROM `user` WHERE idUser = ?"
+            ).use { statement ->
+                statement.setInt(1, idUser)
+                statement.executeQuery().use { rs ->
+                    if (rs.next()) rs.getString("role") else null
+                }
+            }
+        }
+    }
+
+    // Sprint 2 : changer le rôle (ex. PASSAGER -> CONDUCTEUR)
+    fun updateRole(idUser: Int, role: String): Boolean {
+        return DatabaseFactory.getConnection().use { connection ->
+            connection.prepareStatement(
+                "UPDATE `user` SET role = ? WHERE idUser = ?"
+            ).use { statement ->
+                statement.setString(1, role)
+                statement.setInt(2, idUser)
+                statement.executeUpdate() > 0
+            }
+        }
+    }
 }

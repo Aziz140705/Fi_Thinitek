@@ -1,6 +1,7 @@
 package com.fithnitek.routes
 
 import com.fithnitek.config.JwtConfig
+import com.fithnitek.config.PasswordPolicy
 import com.fithnitek.models.RegisterRequest
 import com.fithnitek.models.RegisterResponse
 import com.fithnitek.models.LoginRequest
@@ -54,11 +55,12 @@ fun Route.authRoutes() {
                 return@post
             }
 
-            if (request.password.length < 8 ||
-                request.password.toByteArray(Charsets.UTF_8).size > 72) {
+            // Mot de passe fort : 8 caractères, majuscule, minuscule, chiffre, caractère spécial
+            val passwordError = PasswordPolicy.validate(request.password)
+            if (passwordError != null) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    RegisterResponse(false, "Mot de passe invalide (8 caractères minimum, 72 octets maximum)")
+                    RegisterResponse(false, passwordError)
                 )
                 return@post
             }

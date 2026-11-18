@@ -98,8 +98,53 @@ object DatabaseFactory {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
                     """.trimIndent()
                 )
+
+                // Table trajet (Sprint 2) : trajets publiés par les conducteurs
+                stmt.executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `trajet` (
+                        `idTrajet` INT AUTO_INCREMENT PRIMARY KEY,
+                        `idConducteur` INT NOT NULL,
+                        `depart` VARCHAR(150) NOT NULL,
+                        `destination` VARCHAR(150) NOT NULL,
+                        `depart_lat` DOUBLE NULL,
+                        `depart_lng` DOUBLE NULL,
+                        `dest_lat` DOUBLE NULL,
+                        `dest_lng` DOUBLE NULL,
+                        `date_depart` DATETIME NOT NULL,
+                        `prix` DECIMAL(8,2) NOT NULL,
+                        `places_total` INT NOT NULL,
+                        `places_disponibles` INT NOT NULL,
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX `idx_trajet_date` (`date_depart`),
+                        INDEX `idx_trajet_conducteur` (`idConducteur`),
+                        FOREIGN KEY (`idConducteur`) REFERENCES `user` (`idUser`) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                    """.trimIndent()
+                )
+
+                // Table reservation (Sprint 2) : demandes des passagers
+                // statut : EN_ATTENTE, ACCEPTEE, REFUSEE, ANNULEE
+                stmt.executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `reservation` (
+                        `idReservation` INT AUTO_INCREMENT PRIMARY KEY,
+                        `idTrajet` INT NOT NULL,
+                        `idPassager` INT NOT NULL,
+                        `nb_places` INT NOT NULL DEFAULT 1,
+                        `statut` VARCHAR(20) NOT NULL DEFAULT 'EN_ATTENTE',
+                        `prix_total` DECIMAL(8,2) NOT NULL,
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        INDEX `idx_reservation_trajet` (`idTrajet`),
+                        INDEX `idx_reservation_passager` (`idPassager`),
+                        FOREIGN KEY (`idTrajet`) REFERENCES `trajet` (`idTrajet`) ON DELETE CASCADE,
+                        FOREIGN KEY (`idPassager`) REFERENCES `user` (`idUser`) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                    """.trimIndent()
+                )
             }
-            println("Tables 'user' et 'password_reset_tokens' prêtes et vérifiées.")
+            println("Tables 'user', 'password_reset_tokens', 'trajet' et 'reservation' prêtes et vérifiées.")
         } catch (e: Exception) {
             println("Avertissement création tables: ${e.message}")
         }

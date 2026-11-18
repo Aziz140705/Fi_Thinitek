@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
+        android:name=".FiThnitekApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -63,6 +64,29 @@
             android:name=".ResetPasswordActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- ===== Sprint 2 ===== -->
+
+        <!-- Recherche de trajets (passager) -->
+        <activity
+            android:name=".RechercheActivity"
+            android:exported="false" />
+
+        <!-- Mes trajets (conducteur) -->
+        <activity
+            android:name=".MesTrajetsActivity"
+            android:exported="false" />
+
+        <!-- Publier / modifier un trajet -->
+        <activity
+            android:name=".TrajetFormActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Réservations (passager) et demandes reçues (conducteur) -->
+        <activity
+            android:name=".ReservationsActivity"
+            android:exported="false" />
 
         <meta-data
             android:name="preloaded_fonts"
