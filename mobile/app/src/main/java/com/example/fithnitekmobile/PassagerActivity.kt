@@ -112,17 +112,6 @@ class PassagerActivity : BaseActivity() {
             if (user == null) goToWelcome() else renderRole(user.role)
         }
 
-        authViewModel.conducteurResult.observe(this) { event ->
-            when (val state = event.getContentIfNotHandled()) {
-                is Resource.Success -> {
-                    toast("Vous êtes maintenant conducteur 🚗", long = true)
-                    startActivity(Intent(this, MesTrajetsActivity::class.java))
-                }
-                is Resource.Error -> showError(state.message)
-                else -> Unit
-            }
-        }
-
         viewModel.mapInfo.observe(this) { info ->
             binding.tvMapInfo.text = info
         }
@@ -494,27 +483,11 @@ class PassagerActivity : BaseActivity() {
         })
     }
 
-    // Conducteur : ouvre son espace. Passager : propose de devenir conducteur.
+    // Conducteur : espace trajets. Passager : dossier + paiement.
     private fun showPasserConducteur() {
-        if (currentRole == "CONDUCTEUR") {
-            startActivity(Intent(this, MesTrajetsActivity::class.java))
-            return
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Passer à un compte conducteur 🚗")
-            .setMessage(
-                "Pour publier des trajets, il faut un compte conducteur.\n\n" +
-                        "Sprint 2 : le passage est immédiat et gratuit.\n\n" +
-                        "Sprint 3 (prévu) :\n" +
-                        "1. Paiement des frais d'activation\n" +
-                        "2. Dépôt du dossier (CIN, permis, carte grise, assurance, photo voiture)\n" +
-                        "3. Validation par l'administrateur (PENDING -> VALIDATED / REJECTED)\n\n" +
-                        "Devenir conducteur maintenant ?"
-            )
-            .setPositiveButton("Devenir conducteur") { _, _ -> authViewModel.devenirConducteur() }
-            .setNegativeButton("Plus tard", null)
-            .show()
+        val target = if (currentRole == "CONDUCTEUR") MesTrajetsActivity::class.java
+        else DossierConducteurActivity::class.java
+        startActivity(Intent(this, target))
     }
 
     // ------------------------------------------------------------------

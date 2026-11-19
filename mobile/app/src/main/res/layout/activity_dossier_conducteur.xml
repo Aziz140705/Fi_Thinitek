@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#B7D8F5"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/pocket_red"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/btnRetour"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_pill_yellow"
+            android:gravity="center"
+            android:text="←"
+            android:textColor="#1A1A1A"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/bangers"
+            android:text="Devenir conducteur"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/pocket_red"
+        android:visibility="invisible" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- ===== Étape 2 : paiement (visible quand le dossier est enregistré) ===== -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPaiement"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:strokeColor="#1A1A1A"
+                app:strokeWidth="1.5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✅ Dossier vérifié"
+                        android:textColor="#15803D"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvResume"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvFrais"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:textColor="@color/pocket_red"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Paiement simulé pour l'instant : aucun argent n'est prélevé."
+                        android:textColor="#64748B"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPayer"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:layout_marginTop="14dp"
+                        android:backgroundTint="@color/pocket_red"
+                        android:text="Payer et devenir conducteur"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        app:cornerRadius="14dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnModifier"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Modifier mon dossier"
+                        android:textAllCaps="false"
+                        android:textColor="#0F4C81" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ===== Étape 1 : formulaire du dossier ===== -->
+            <LinearLayout
+                android:id="@+id/formContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/bangers"
+                    android:text="Identité"
+                    android:textColor="#1A1A1A"
+                    android:textSize="20sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="N° de CIN (8 chiffres)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="8" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="N° de permis de conduire"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPermis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="20" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPhotoCin"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="Photo du CIN"
+                        android:textAllCaps="false"
+                        android:textColor="#1A1A1A"
+                        app:cornerRadius="14dp"
+                        app:strokeColor="#1A1A1A" />
+
+                    <ImageView
+                        android:id="@+id/ivCin"
+                        android:layout_width="64dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="10dp"
+                        android:background="#E2E8F0"
+                        android:contentDescription="Aperçu CIN"
+                        android:scaleType="centerCrop" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPhotoPermis"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="Photo du permis"
+                        android:textAllCaps="false"
+                        android:textColor="#1A1A1A"
+                        app:cornerRadius="14dp"
+                        app:strokeColor="#1A1A1A" />
+
+                    <ImageView
+                        android:id="@+id/ivPermis"
+                        android:layout_width="64dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="10dp"
+                        android:background="#E2E8F0"
+                        android:contentDescription="Aperçu permis"
+                        android:scaleType="centerCrop" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/bangers"
+                    android:text="Véhicule"
+                    android:textColor="#1A1A1A"
+                    android:textSize="20sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:hint="Marque (ex : Peugeot)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMarque"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:maxLength="50" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Modèle (ex : 208)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etModel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:maxLength="50" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Immatriculation (ex : 123 TUN 4567)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMatricule"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:maxLength="20" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Couleur (facultatif)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCouleur"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:maxLength="20" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Places passagers (1 à 8)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPlaces"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:hint="Sièges enfant disponibles (0 par défaut)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxBackgroundMode="filled">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSieges"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPhotoVehicule"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="Photo du véhicule"
+                        android:textAllCaps="false"
+                        android:textColor="#1A1A1A"
+                        app:cornerRadius="14dp"
+                        app:strokeColor="#1A1A1A" />
+
+                    <ImageView
+                        android:id="@+id/ivVehicule"
+                        android:layout_width="64dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="10dp"
+                        android:background="#E2E8F0"
+                        android:contentDescription="Aperçu véhicule"
+                        android:scaleType="centerCrop" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvPhotoErreur"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/pocket_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Vos documents restent privés : ils ne sont jamais montrés aux passagers."
+                    android:textColor="#64748B"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEnvoyer"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="16dp"
+                    android:backgroundTint="@color/pocket_red"
+                    android:text="Vérifier et enregistrer mon dossier"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:cornerRadius="14dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

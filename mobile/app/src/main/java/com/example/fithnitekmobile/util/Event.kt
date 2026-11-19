@@ -1,17 +1,11 @@
 package com.example.fithnitekmobile.util
 
 class Event<out T>(private val content: T) {
-    var hasBeenHandled = false
-        private set
+    private var handled = false
 
-    fun getContentIfNotHandled(): T? {
-        return if (hasBeenHandled) {
-            null
-        } else {
-            hasBeenHandled = true
+    fun getContentIfNotHandled(): T? =
+        if (handled) null else {
+            handled = true
             content
         }
-    }
-
-    fun peekContent(): T = content
 }

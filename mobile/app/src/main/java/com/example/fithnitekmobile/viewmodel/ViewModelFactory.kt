@@ -3,24 +3,25 @@ package com.example.fithnitekmobile.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.fithnitekmobile.network.RetrofitClient
-import com.example.fithnitekmobile.session.SessionManager
+import com.example.fithnitekmobile.di.AppContainer
 
-class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
+
+    constructor(context: Context) : this(AppContainer(context))
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        val sessionManager = SessionManager(context)
-        val apiService = RetrofitClient.create(sessionManager)
-
         return when {
-            modelClass.isAssignableFrom(AuthViewModel::class.java) -> {
-                AuthViewModel(sessionManager, apiService) as T
-            }
-            modelClass.isAssignableFrom(PassagerViewModel::class.java) -> {
-                PassagerViewModel(sessionManager, apiService) as T
-            }
-            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+            modelClass.isAssignableFrom(AuthViewModel::class.java) ->
+                AuthViewModel(container.sessionManager, container.authRepository) as T
+
+            modelClass.isAssignableFrom(PassagerViewModel::class.java) ->
+                PassagerViewModel(container.sessionManager, container.trajetRepository) as T
+
+            modelClass.isAssignableFrom(ConducteurViewModel::class.java) ->
+                ConducteurViewModel(container.conducteurRepository) as T
+
+            else -> throw IllegalArgumentException("ViewModel inconnu : ${modelClass.name}")
         }
     }
 }

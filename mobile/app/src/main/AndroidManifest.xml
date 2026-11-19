@@ -88,6 +88,12 @@
             android:name=".ReservationsActivity"
             android:exported="false" />
 
+        <!-- Dossier conducteur + paiement -->
+        <activity
+            android:name=".DossierConducteurActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

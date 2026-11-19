@@ -11,7 +11,7 @@ import com.example.fithnitekmobile.models.ResetPasswordRequest
 import com.example.fithnitekmobile.models.UserDto
 import com.example.fithnitekmobile.models.VerifyCodeRequest
 import com.example.fithnitekmobile.models.VerifyCodeResponse
-import com.example.fithnitekmobile.network.ApiService
+import com.example.fithnitekmobile.repository.AuthRepository
 import com.example.fithnitekmobile.session.SessionManager
 import com.example.fithnitekmobile.util.Event
 import com.example.fithnitekmobile.util.FormError
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val sessionManager: SessionManager,
-    private val apiService: ApiService
+    private val repository: AuthRepository
 ) : ViewModel() {
 
     private val _authenticatedUser = MutableLiveData<UserDto?>(sessionManager.getUser())
@@ -45,9 +45,6 @@ class AuthViewModel(
     private val _resetResult = MutableLiveData<Event<Resource<Unit>>>()
     val resetResult: LiveData<Event<Resource<Unit>>> = _resetResult
 
-    private val _conducteurResult = MutableLiveData<Event<Resource<Unit>>>()
-    val conducteurResult: LiveData<Event<Resource<Unit>>> = _conducteurResult
-
     fun refreshSession() {
         _authenticatedUser.value = sessionManager.getUser()
     }
@@ -69,26 +66,19 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _loginResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.login(LoginRequest(email, password))
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val body = response.body()!!
-                    val user = UserDto(
-                        idUser = body.idUser ?: 0,
-                        email = email,
-                        role = body.role ?: "PASSAGER",
-                        token = body.token
-                    )
-                    if (body.token != null) {
-                        sessionManager.saveSession(body.token, body.idUser ?: 0, body.role ?: "PASSAGER", email = email)
-                    }
-                    _authenticatedUser.value = user
-                    _loginResult.value = Event(Resource.Success(user))
-                } else {
-                    _loginResult.value = Event(Resource.Error(response.body()?.message ?: "Identifiants incorrects"))
-                }
-            } catch (e: Exception) {
-                _loginResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
+            val res = repository.login(LoginRequest(email, password))
+            if (res is Resource.Success) {
+                val body = res.data
+                val user = UserDto(
+                    idUser = body.idUser ?: 0,
+                    email = email,
+                    role = body.role ?: "PASSAGER",
+                    token = body.token
+                )
+                _authenticatedUser.value = user
+                _loginResult.value = Event(Resource.Success(user))
+            } else if (res is Resource.Error) {
+                _loginResult.value = Event(Resource.Error(res.message, res.code))
             }
         }
     }
@@ -117,15 +107,11 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _registerResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.register(RegisterRequest(nom, prenom, email, password, telephone))
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _registerResult.value = Event(Resource.Success(Unit))
-                } else {
-                    _registerResult.value = Event(Resource.Error(response.body()?.message ?: "Erreur lors de la création du compte", response.code()))
-                }
-            } catch (e: Exception) {
-                _registerResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
+            val res = repository.register(RegisterRequest(nom, prenom, email, password, telephone))
+            if (res is Resource.Success) {
+                _registerResult.value = Event(Resource.Success(Unit))
+            } else if (res is Resource.Error) {
+                _registerResult.value = Event(Resource.Error(res.message, res.code))
             }
         }
     }
@@ -138,15 +124,11 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _forgotResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.forgotPassword(ForgotPasswordRequest(email))
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _forgotResult.value = Event(Resource.Success(Unit))
-                } else {
-                    _forgotResult.value = Event(Resource.Error(response.body()?.message ?: "Erreur lors de l'envoi du code"))
-                }
-            } catch (e: Exception) {
-                _forgotResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
+            val res = repository.forgotPassword(ForgotPasswordRequest(email))
+            if (res is Resource.Success) {
+                _forgotResult.value = Event(Resource.Success(Unit))
+            } else if (res is Resource.Error) {
+                _forgotResult.value = Event(Resource.Error(res.message, res.code))
             }
         }
     }
@@ -159,15 +141,11 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _verifyResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.verifyCode(VerifyCodeRequest(email, code))
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _verifyResult.value = Event(Resource.Success(response.body()!!))
-                } else {
-                    _verifyResult.value = Event(Resource.Error(response.body()?.message ?: "Code invalide"))
-                }
-            } catch (e: Exception) {
-                _verifyResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
+            val res = repository.verifyCode(VerifyCodeRequest(email, code))
+            if (res is Resource.Success) {
+                _verifyResult.value = Event(Resource.Success(res.data))
+            } else if (res is Resource.Error) {
+                _verifyResult.value = Event(Resource.Error(res.message, res.code))
             }
         }
     }
@@ -184,44 +162,11 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _resetResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.resetPassword(ResetPasswordRequest(ticket, password))
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _resetResult.value = Event(Resource.Success(Unit))
-                } else {
-                    _resetResult.value = Event(Resource.Error(response.body()?.message ?: "Erreur lors de la réinitialisation"))
-                }
-            } catch (e: Exception) {
-                _resetResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
-            }
-        }
-    }
-
-    fun devenirConducteur() {
-        viewModelScope.launch {
-            _conducteurResult.value = Event(Resource.Loading)
-            try {
-                val response = apiService.devenirConducteur()
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val body = response.body()!!
-                    val currentUser = _authenticatedUser.value
-                    if (currentUser != null && body.token != null) {
-                        sessionManager.saveSession(
-                            token = body.token,
-                            idUser = currentUser.idUser,
-                            role = "CONDUCTEUR",
-                            nom = currentUser.nom,
-                            prenom = currentUser.prenom,
-                            email = currentUser.email
-                        )
-                        _authenticatedUser.value = currentUser.copy(role = "CONDUCTEUR", token = body.token)
-                    }
-                    _conducteurResult.value = Event(Resource.Success(Unit))
-                } else {
-                    _conducteurResult.value = Event(Resource.Error(response.body()?.message ?: "Erreur"))
-                }
-            } catch (e: Exception) {
-                _conducteurResult.value = Event(Resource.Error(e.localizedMessage ?: "Erreur réseau"))
+            val res = repository.resetPassword(ResetPasswordRequest(ticket, password))
+            if (res is Resource.Success) {
+                _resetResult.value = Event(Resource.Success(Unit))
+            } else if (res is Resource.Error) {
+                _resetResult.value = Event(Resource.Error(res.message, res.code))
             }
         }
     }

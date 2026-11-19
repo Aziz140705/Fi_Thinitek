@@ -6,14 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fithnitekmobile.models.TrajetDto
-import com.example.fithnitekmobile.network.ApiService
+import com.example.fithnitekmobile.repository.TrajetRepository
 import com.example.fithnitekmobile.session.SessionManager
 import com.example.fithnitekmobile.util.GeoPoint
+import com.example.fithnitekmobile.util.Resource
 import kotlinx.coroutines.launch
 
 class PassagerViewModel(
     private val sessionManager: SessionManager,
-    private val apiService: ApiService
+    private val repository: TrajetRepository
 ) : ViewModel() {
 
     private val _mapInfo = MutableLiveData<String>()
@@ -40,13 +41,9 @@ class PassagerViewModel(
 
     fun loadTrajetsDisponibles() {
         viewModelScope.launch {
-            try {
-                val response = apiService.rechercherTrajets()
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _trajets.value = response.body()?.trajets.orEmpty()
-                }
-            } catch (e: Exception) {
-                // Erreur réseau ignorée
+            val res = repository.rechercherTrajets()
+            if (res is Resource.Success) {
+                _trajets.value = res.data.trajets
             }
         }
     }
