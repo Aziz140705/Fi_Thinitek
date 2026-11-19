@@ -9,7 +9,7 @@
     app:cardBackgroundColor="#FFFFFF"
     app:cardCornerRadius="20dp"
     app:cardElevation="4dp"
-    app:strokeColor="@color/baby_blue"
+    app:strokeColor="#1A1A1A"
     app:strokeWidth="1.5dp">
 
     <LinearLayout
@@ -29,7 +29,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#0F172A"
+                android:textColor="#1A1A1A"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 tools:text="Tunis → Sousse" />
@@ -38,8 +38,10 @@
                 android:id="@+id/tvStatut"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_yellow"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="3dp"
+                android:textColor="#1A1A1A"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 tools:text="EN ATTENTE" />
@@ -50,7 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="#475569"
+            android:textColor="#666666"
             android:textSize="13sp"
             tools:text="20/11/2026 à 08:30" />
 
@@ -59,7 +61,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:textColor="#475569"
+            android:textColor="#666666"
             android:textSize="13sp"
             tools:text="Passager : Ali Pass" />
 
@@ -68,7 +70,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="@color/pocket_red"
+            android:textColor="#E10600"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="2 place(s) • Total 25.0 DT" />
@@ -85,7 +87,7 @@
                 android:layout_width="0dp"
                 android:layout_height="46dp"
                 android:layout_weight="1"
-                android:backgroundTint="#15803D"
+                android:backgroundTint="#167D54"
                 android:text="Accepter"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
@@ -101,23 +103,24 @@
                 android:layout_weight="1"
                 android:text="Refuser"
                 android:textAllCaps="false"
-                android:textColor="@color/pocket_red"
+                android:textColor="#E10600"
                 android:textStyle="bold"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/pocket_red" />
+                app:strokeColor="#E10600" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAnnuler"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="46dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Annuler la réservation"
                 android:textAllCaps="false"
-                android:textColor="@color/pocket_red"
+                android:textColor="#1A1A1A"
                 android:textStyle="bold"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/pocket_red" />
+                app:strokeColor="#1A1A1A" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

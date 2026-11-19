@@ -9,7 +9,7 @@
     app:cardBackgroundColor="#FFFFFF"
     app:cardCornerRadius="20dp"
     app:cardElevation="4dp"
-    app:strokeColor="@color/baby_blue"
+    app:strokeColor="#1A1A1A"
     app:strokeWidth="1.5dp">
 
     <LinearLayout
@@ -29,7 +29,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#0F172A"
+                android:textColor="#1A1A1A"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 tools:text="Tunis → Sousse" />
@@ -52,7 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="#475569"
+            android:textColor="#666666"
             android:textSize="13sp"
             tools:text="20/11/2026 à 08:30" />
 
@@ -61,7 +61,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:textColor="#475569"
+            android:textColor="#666666"
             android:textSize="13sp"
             tools:text="Conducteur : Bob Cond" />
 
@@ -70,7 +70,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="@color/pocket_red"
+            android:textColor="#E10600"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="12.5 DT / place • 3 place(s) libre(s)" />
@@ -80,6 +80,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:background="@drawable/bg_pill_yellow"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textColor="#1A1A1A"
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="gone"
@@ -96,7 +100,7 @@
                 android:layout_width="0dp"
                 android:layout_height="46dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/pocket_red"
+                android:backgroundTint="#E10600"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -111,10 +115,10 @@
                 android:layout_weight="1"
                 android:text="Supprimer"
                 android:textAllCaps="false"
-                android:textColor="@color/pocket_red"
+                android:textColor="#1A1A1A"
                 android:textStyle="bold"
                 app:cornerRadius="14dp"
-                app:strokeColor="@color/pocket_red" />
+                app:strokeColor="#1A1A1A" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

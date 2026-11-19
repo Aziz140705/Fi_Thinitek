@@ -4,11 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFC"
+    android:background="#B7D8F5"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <!-- En-tête Top Bar -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,10 +15,11 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="12dp"
-        app:cardBackgroundColor="@color/pocket_red"
+        app:cardBackgroundColor="#E10600"
         app:cardCornerRadius="20dp"
         app:cardElevation="6dp"
-        app:strokeWidth="0dp">
+        app:strokeColor="#FFD700"
+        app:strokeWidth="2dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,11 +29,10 @@
             android:paddingHorizontal="16dp"
             android:paddingVertical="14dp">
 
-            <!-- Bouton Retour -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                app:cardBackgroundColor="#20FFFFFF"
+                app:cardBackgroundColor="#FFD700"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="0dp">
@@ -46,12 +45,11 @@
                     android:focusable="true"
                     android:gravity="center"
                     android:text="←"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#1A1A1A"
                     android:textSize="22sp"
                     android:textStyle="bold" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Titre et sous-titre -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -62,28 +60,30 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/bangers"
                     android:text="Mes trajets"
                     android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textSize="26sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Gérez vos publications &amp; offres"
-                    android:textColor="#FEE2E2"
+                    android:textColor="#FFFFFF"
                     android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_yellow"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
                 android:text="🚗"
-                android:textSize="24sp" />
+                android:textSize="22sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Boutons d'action rapides -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -96,7 +96,7 @@
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/pocket_red"
+            android:backgroundTint="#E10600"
             android:text="＋ Publier un trajet"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
@@ -111,7 +111,7 @@
             android:layout_height="52dp"
             android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/sunshine_yellow"
+            android:backgroundTint="#FFD700"
             android:text="Demandes reçues"
             android:textAllCaps="false"
             android:textColor="#1A1A1A"
@@ -121,7 +121,6 @@
             app:elevation="4dp" />
     </LinearLayout>
 
-    <!-- Indicateur de chargement -->
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyle"
@@ -129,10 +128,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="24dp"
-        android:indeterminateTint="@color/pocket_red"
+        android:indeterminateTint="#E10600"
         android:visibility="gone" />
 
-    <!-- Message de liste vide -->
     <TextView
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
@@ -144,11 +142,10 @@
         android:paddingHorizontal="24dp"
         android:paddingVertical="36dp"
         android:text="Vous n'avez publié aucun trajet."
-        android:textColor="#64748B"
+        android:textColor="#666666"
         android:textSize="15sp"
         android:visibility="gone" />
 
-    <!-- Liste des trajets -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"

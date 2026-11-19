@@ -3,25 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F6F8"
+    android:background="#B7D8F5"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/pocket_red"
+        android:background="#E10600"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp">
 
         <TextView
             android:id="@+id/btnRetour"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="6dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_pill_yellow"
+            android:gravity="center"
             android:text="←"
-            android:textColor="#FFFFFF"
+            android:textColor="#1A1A1A"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -29,10 +30,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:fontFamily="@font/bangers"
             android:text="Rechercher un trajet"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textSize="24sp" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -42,7 +43,7 @@
         app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="20dp"
         app:cardElevation="4dp"
-        app:strokeColor="@color/baby_blue"
+        app:strokeColor="#1A1A1A"
         app:strokeWidth="1.5dp">
 
         <LinearLayout
@@ -55,9 +56,9 @@
                 android:id="@+id/tvCriteres"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#0F172A"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/bangers"
+                android:textColor="#1A1A1A"
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -74,9 +75,9 @@
                     android:layout_weight="1"
                     android:text="Toutes les dates"
                     android:textAllCaps="false"
-                    android:textColor="#0F172A"
+                    android:textColor="#333333"
                     app:cornerRadius="12dp"
-                    app:strokeColor="@color/baby_blue" />
+                    app:strokeColor="#1A1A1A" />
 
                 <TextView
                     android:id="@+id/btnEffacerDate"
@@ -84,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:text="✕"
-                    android:textColor="@color/pocket_red"
+                    android:textColor="#E10600"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -100,14 +101,18 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Prix max (DT)">
+                    android:hint="Prix max (DT)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxStrokeColor="#1A1A1A"
+                    app:hintTextColor="#666666">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPrixMax"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:textColor="#333333" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -115,14 +120,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:hint="Places min">
+                    android:hint="Places min"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxStrokeColor="#1A1A1A"
+                    app:hintTextColor="#666666">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPlacesMin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:textColor="#333333" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -131,14 +140,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:hint="Rayon (km)">
+                    android:hint="Rayon (km)"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxStrokeColor="#1A1A1A"
+                    app:hintTextColor="#666666">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etRayon"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberDecimal"
-                        android:singleLine="true" />
+                        android:singleLine="true"
+                        android:textColor="#333333" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -147,7 +160,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
-                android:backgroundTint="@color/pocket_red"
+                android:backgroundTint="#E10600"
                 android:text="Appliquer les filtres"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
@@ -161,16 +174,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:indeterminateTint="#E10600"
         android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_card"
         android:gravity="center"
         android:padding="24dp"
         android:text="Aucun trajet ne correspond à votre recherche."
-        android:textColor="#64748B"
+        android:textColor="#666666"
         android:textSize="14sp"
         android:visibility="gone" />
 
