@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="220dp"
+    android:viewportWidth="360"
+    android:viewportHeight="220">
+    <!-- Dark Luxury Metallic Background -->
+    <path
+        android:fillColor="#0A0C10"
+        android:pathData="M0,0h360v220H0z"/>
+    <!-- Ambient Studio Glow -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M0,40 Q180,0 360,40 L360,180 Q180,220 0,180 Z"/>
+    <!-- Metallic Hood Contour / Silver Reflections -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M30,180 C80,120 180,90 330,80 L360,95 L360,220 L0,220 Z"/>
+    <path
+        android:fillColor="#475569"
+        android:pathData="M50,190 C100,140 190,110 320,105 L350,115 L350,220 L20,220 Z"/>
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M70,200 C120,160 200,135 310,130 L340,140 L340,220 L50,220 Z"/>
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M110,210 C150,180 220,165 300,160 L320,168 L320,220 L90,220 Z"/>
+    <!-- Headlight Housing (Porsche 911 Quad LED Matrix Style) -->
+    <path
+        android:fillColor="#020617"
+        android:pathData="M160,70 Q240,40 300,60 Q340,110 280,140 Q200,145 160,70 Z"/>
+    <!-- Chrome Headlight Ring -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M165,72 Q238,44 296,63 Q334,108 277,136 Q203,141 165,72 Z"/>
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M170,75 Q235,48 292,66 Q328,106 274,132 Q206,137 170,75 Z"/>
+    <!-- LED Matrix Modules (Cyan / Pure White Crystal Projectors) -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M190,82 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M194,82 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"/>
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M240,78 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M244,78 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"/>
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M210,110 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M214,110 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"/>
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M260,106 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M264,106 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"/>
+    <!-- LED Light Bar Streak / DRL Strip -->
+    <path
+        android:fillColor="#E10600"
+        android:pathData="M80,130 C150,110 250,95 350,90 L355,95 C255,100 155,115 80,135 Z"/>
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M150,60 C230,35 310,50 340,90 L342,86 C310,44 228,30 148,56 Z"/>
+</vector>

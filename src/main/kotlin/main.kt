@@ -1,19 +1,15 @@
 package com
 
 import com.fithnitek.config.DatabaseFactory
-<<<<<<< HEAD
 import com.fithnitek.config.JwtConfig
 import com.fithnitek.models.MessageResponse
 import io.ktor.http.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
-import io.ktor.server.application.*
-=======
-import io.ktor.server.engine.*
->>>>>>> f2369400a0dd5e45896ab772b3539cf2ffb2f5f8
-import io.ktor.server.netty.*
-import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -36,7 +32,7 @@ fun Application.module() {
     }
 
     // Authentification JWT : les routes dans authenticate("auth-jwt") exigent
-    // l'en-tête  Authorization: Bearer <token>
+    // l'en-tête Authorization: Bearer <token>
     install(Authentication) {
         jwt("auth-jwt") {
             realm = "fi-thnitek"

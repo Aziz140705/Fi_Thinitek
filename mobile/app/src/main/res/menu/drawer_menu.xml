@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/nav_accueil" android:icon="@drawable/ic_my_location" android:title="Accueil" />
+        <item android:id="@+id/nav_rechercher" android:icon="@drawable/ic_search_magnifier" android:title="Rechercher un trajet" />
+        <item android:id="@+id/nav_reservations" android:icon="@drawable/ic_ticket_history" android:title="Mes réservations (à développer)" />
+        <item android:id="@+id/nav_trajets" android:icon="@drawable/ic_car" android:title="Mes trajets (à développer)" />
+    </group>
+    <item android:title="Conducteur">
+        <menu>
+            <item android:id="@+id/nav_passer_conducteur" android:icon="@drawable/ic_car" android:title="Passer à un compte conducteur" />
+            <item android:id="@+id/nav_dossier" android:icon="@drawable/ic_person" android:title="Mon dossier conducteur" />
+        </menu>
+    </item>
+    <item android:title="Compte">
+        <menu>
+            <item android:id="@+id/nav_profil" android:icon="@drawable/ic_person" android:title="Profil" />
+            <item android:id="@+id/nav_parametres" android:icon="@drawable/ic_my_location" android:title="Paramètres (à développer)" />
+            <item android:id="@+id/nav_deconnexion" android:icon="@drawable/ic_logout" android:title="Déconnexion" />
+        </menu>
+    </item>
+</menu>

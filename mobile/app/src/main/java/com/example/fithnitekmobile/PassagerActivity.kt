@@ -22,7 +22,7 @@ import com.example.fithnitekmobile.util.GeoUtils
 import com.example.fithnitekmobile.util.Resource
 import com.example.fithnitekmobile.viewmodel.AuthViewModel
 import com.example.fithnitekmobile.viewmodel.PassagerViewModel
-import com.example.fithnitekmobile.viewmodel.ReservationMode
+import com.example.fithnitekmobile.models.ReservationMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.Icon
 import org.maplibre.android.annotations.IconFactory
@@ -118,14 +118,13 @@ class PassagerActivity : BaseActivity() {
                     toast("Vous êtes maintenant conducteur 🚗", long = true)
                     startActivity(Intent(this, MesTrajetsActivity::class.java))
                 }
-                is Resource.Error -> showError(state)
+                is Resource.Error -> showError(state.message)
                 else -> Unit
             }
         }
 
         viewModel.mapInfo.observe(this) { info ->
-            binding.tvMapInfo.text = info.text
-            binding.tvMapInfo.setTextColor(if (info.positive) Color.rgb(21, 128, 61) else Color.RED)
+            binding.tvMapInfo.text = info
         }
 
         // Dès que les données de la carte changent, on la redessine
@@ -268,13 +267,16 @@ class PassagerActivity : BaseActivity() {
     private fun handleMapTap(tapped: LatLng) {
         if (mapLibreMap == null) return
 
-        val tap = viewModel.onMapTapped(GeoPoint(tapped.latitude, tapped.longitude))
-        if (tap.isDepart) {
-            binding.etDepart.setText(tap.label)
-            toast("📍 Départ fixé : ${tap.label}")
+        val point = GeoPoint(tapped.latitude, tapped.longitude)
+        viewModel.onMapTapped(point)
+        if (viewModel.selectingDepart) {
+            val label = "%.4f, %.4f".format(point.lat, point.lng)
+            binding.etDepart.setText(label)
+            toast("📍 Départ fixé : $label")
         } else {
-            binding.etDestination.setText(tap.label)
-            toast("🏁 Destination fixée : ${tap.label}")
+            val label = "%.4f, %.4f".format(point.lat, point.lng)
+            binding.etDestination.setText(label)
+            toast("🏁 Destination fixée : $label")
         }
         redrawRouteAndMarkers()
     }
@@ -310,7 +312,7 @@ class PassagerActivity : BaseActivity() {
         initIcons()
 
         // 1) Trajets réellement publiés par les conducteurs (lignes vertes)
-        viewModel.trajets.value.orEmpty().filter { it.hasCoordinates }.forEach { t ->
+        viewModel.trajets.value.orEmpty().filter { it.hasCoordinates() }.forEach { t ->
             map.addPolyline(
                 PolylineOptions()
                     .add(LatLng(t.departLat!!, t.departLng!!), LatLng(t.destLat!!, t.destLng!!))
@@ -335,7 +337,7 @@ class PassagerActivity : BaseActivity() {
         // 3) Destination choisie
         if (destination != null) {
             val distText = if (depart != null)
-                "Distance estimée: %.1f km".format(GeoUtils.haversineKm(depart, destination)) else ""
+                "Distance estimée: %.1f km".format(GeoUtils.distanceKm(depart.lat, depart.lng, destination.lat, destination.lng)) else ""
             val options = MarkerOptions()
                 .position(LatLng(destination.lat, destination.lng))
                 .title("🏁 Destination")
@@ -387,18 +389,7 @@ class PassagerActivity : BaseActivity() {
                     true
                 }
 
-                R.id.nav_trajets -> {
-                    showPasserConducteur()
-                    true
-                }
-
-                R.id.nav_demandes -> {
-                    if (currentRole == "CONDUCTEUR") openReservations(ReservationMode.CONDUCTEUR)
-                    else showPasserConducteur()
-                    true
-                }
-
-                R.id.nav_passer_conducteur, R.id.nav_dossier -> {
+                R.id.nav_trajets, R.id.nav_passer_conducteur, R.id.nav_dossier -> {
                     showPasserConducteur()
                     true
                 }
