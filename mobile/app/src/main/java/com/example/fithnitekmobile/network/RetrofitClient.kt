@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private val isEmulator: Boolean
+            private val isEmulator: Boolean
         get() = (Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
                 || Build.MODEL.contains("google_sdk")
