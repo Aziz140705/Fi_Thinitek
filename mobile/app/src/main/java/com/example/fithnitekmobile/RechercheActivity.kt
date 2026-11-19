@@ -3,6 +3,7 @@ package com.example.fithnitekmobile
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import com.example.fithnitekmobile.databinding.ActivityRechercheBinding
 
 class RechercheActivity : BaseActivity() {
 
@@ -14,8 +15,13 @@ class RechercheActivity : BaseActivity() {
         }
     }
 
+    private lateinit var binding: ActivityRechercheBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        toast("Recherche de trajets")
+        binding = ActivityRechercheBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.btnRetour.setOnClickListener { finish() }
     }
 }

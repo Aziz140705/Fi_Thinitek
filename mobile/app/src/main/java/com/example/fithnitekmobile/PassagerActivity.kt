@@ -389,18 +389,13 @@ class PassagerActivity : BaseActivity() {
                     true
                 }
 
-                R.id.nav_trajets, R.id.nav_passer_conducteur, R.id.nav_dossier -> {
+                R.id.nav_trajets, R.id.nav_passer_conducteur -> {
                     showPasserConducteur()
                     true
                 }
 
                 R.id.nav_profil -> {
                     toast("Profil - à développer")
-                    true
-                }
-
-                R.id.nav_parametres -> {
-                    toast("Paramètres - à développer")
                     true
                 }
 
