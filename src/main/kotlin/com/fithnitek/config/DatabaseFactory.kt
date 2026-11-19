@@ -7,33 +7,38 @@ import java.sql.DriverManager
 
 object DatabaseFactory {
 
+    // Paramètres MySQL : variables d'environnement, avec les valeurs XAMPP/WAMP par défaut.
+    private fun env(name: String, default: String) =
+        System.getenv(name)?.takeIf { it.isNotBlank() } ?: default
+
+    private val host get() = env("DB_HOST", "localhost")
+    private val port get() = env("DB_PORT", "3306")
+    private val dbName get() = env("DB_NAME", "fi_thnitek")
+    private val dbUser get() = env("DB_USER", "root")
+    private val dbPassword get() = System.getenv("DB_PASSWORD") ?: ""
+
     // Pool de connexions MySQL
     private var dataSource: HikariDataSource? = null
 
     // Initialisation de la base de données
     fun init() {
         try {
-            // 1. Création de la base si elle n'existe pas encore
             createDatabaseIfNotExists()
 
             val config = HikariConfig().apply {
-                // Configuration MySQL
-                jdbcUrl = "jdbc:mysql://localhost:3306/fi_thnitek?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-                username = "root"
-                password = ""
+                jdbcUrl = "jdbc:mysql://$host:$port/$dbName?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+                username = dbUser
+                password = dbPassword
                 driverClassName = "com.mysql.cj.jdbc.Driver"
 
-                // Configuration du pool HikariCP
                 maximumPoolSize = 5
                 minimumIdle = 2
                 connectionTimeout = 5000
                 validationTimeout = 3000
             }
 
-            // Créer le pool de connexions
             val pool = HikariDataSource(config)
 
-            // Tester la connexion MySQL et s'assurer que les tables existent
             pool.connection.use { connection ->
                 println("Connexion MySQL réussie !")
                 println("Base : ${connection.catalog}")
@@ -41,7 +46,7 @@ object DatabaseFactory {
             }
             dataSource = pool
         } catch (e: Exception) {
-            println("Attention : Impossible de se connecter à la base MySQL (localhost:3306). ${e.message}")
+            println("Attention : Impossible de se connecter à la base MySQL ($host:$port). ${e.message}")
             e.printStackTrace()
         }
     }
@@ -50,13 +55,13 @@ object DatabaseFactory {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver")
             DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true",
-                "root",
-                ""
+                "jdbc:mysql://$host:$port/?useSSL=false&allowPublicKeyRetrieval=true",
+                dbUser,
+                dbPassword
             ).use { conn ->
                 conn.createStatement().use { stmt ->
                     stmt.executeUpdate(
-                        "CREATE DATABASE IF NOT EXISTS `fi_thnitek` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                        "CREATE DATABASE IF NOT EXISTS `$dbName` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
                     )
                 }
             }
@@ -99,7 +104,7 @@ object DatabaseFactory {
                     """.trimIndent()
                 )
 
-                // Table trajet (Sprint 2) : trajets publiés par les conducteurs
+                // Table trajet (provisoire : sera remplacée par `voyages`)
                 stmt.executeUpdate(
                     """
                     CREATE TABLE IF NOT EXISTS `trajet` (
@@ -123,8 +128,7 @@ object DatabaseFactory {
                     """.trimIndent()
                 )
 
-                // Table reservation (Sprint 2) : demandes des passagers
-                // statut : EN_ATTENTE, ACCEPTEE, REFUSEE, ANNULEE
+                // Table reservation (provisoire : sera remplacée par `reservations`)
                 stmt.executeUpdate(
                     """
                     CREATE TABLE IF NOT EXISTS `reservation` (
@@ -143,8 +147,66 @@ object DatabaseFactory {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
                     """.trimIndent()
                 )
+
+                // Table conducteur : dossier du conducteur (même structure que ta base)
+                // statut : PENDING = dossier vérifié, en attente de paiement ; VALIDATED = payé, conducteur actif
+                stmt.executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `conducteur` (
+                        `idConducteur` INT AUTO_INCREMENT PRIMARY KEY,
+                        `idUser` INT NOT NULL,
+                        `cin_numero` VARCHAR(20) NOT NULL,
+                        `cin_photo` VARCHAR(255) NOT NULL,
+                        `permis_numero` VARCHAR(50) NOT NULL,
+                        `permis_photo` VARCHAR(255) NOT NULL,
+                        `statut` ENUM('PENDING','VALIDATED','REJECTED') NOT NULL DEFAULT 'PENDING',
+                        UNIQUE KEY `idUser` (`idUser`),
+                        UNIQUE KEY `uq_conducteur_cin` (`cin_numero`),
+                        FOREIGN KEY (`idUser`) REFERENCES `user` (`idUser`) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                    """.trimIndent()
+                )
+
+                // Table vehicule : 1 conducteur = 1 seule voiture (règle RG01)
+                stmt.executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `vehicule` (
+                        `idVehicule` INT AUTO_INCREMENT PRIMARY KEY,
+                        `idConducteur` INT NOT NULL,
+                        `matricule` VARCHAR(20) NOT NULL,
+                        `model` VARCHAR(50) NOT NULL,
+                        `marque` VARCHAR(50) NOT NULL,
+                        `couleur` VARCHAR(20) DEFAULT NULL,
+                        `nbplaces` INT NOT NULL,
+                        `nb_sieges_enfant` INT NOT NULL DEFAULT 0,
+                        `vehicule_photo` VARCHAR(255) DEFAULT NULL,
+                        UNIQUE KEY `idConducteur` (`idConducteur`),
+                        UNIQUE KEY `matricule` (`matricule`),
+                        FOREIGN KEY (`idConducteur`) REFERENCES `conducteur` (`idConducteur`) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                    """.trimIndent()
+                )
+
+                // Table paiement : historique de tous les paiements (nouveau)
+                stmt.executeUpdate(
+                    """
+                    CREATE TABLE IF NOT EXISTS `paiement` (
+                        `idPaiement` INT AUTO_INCREMENT PRIMARY KEY,
+                        `idUser` INT NOT NULL,
+                        `objet` VARCHAR(30) NOT NULL DEFAULT 'ACTIVATION_CONDUCTEUR',
+                        `montant` DECIMAL(8,2) NOT NULL,
+                        `methode` VARCHAR(20) NOT NULL DEFAULT 'SIMULE',
+                        `reference` VARCHAR(60) NOT NULL,
+                        `statut` ENUM('PAID','FAILED') NOT NULL DEFAULT 'PAID',
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY `uq_paiement_reference` (`reference`),
+                        INDEX `idx_paiement_user` (`idUser`),
+                        FOREIGN KEY (`idUser`) REFERENCES `user` (`idUser`) ON DELETE CASCADE
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                    """.trimIndent()
+                )
             }
-            println("Tables 'user', 'password_reset_tokens', 'trajet' et 'reservation' prêtes et vérifiées.")
+            println("Tables 'user', 'trajet', 'reservation', 'conducteur', 'vehicule' et 'paiement' prêtes.")
         } catch (e: Exception) {
             println("Avertissement création tables: ${e.message}")
         }
@@ -152,7 +214,7 @@ object DatabaseFactory {
 
     // Fournir une connexion aux repositories
     fun getConnection(): Connection {
-        val ds = dataSource ?: throw IllegalStateException("La base de données n'est pas connectée. Assurez-vous que MySQL est démarré sur localhost:3306.")
+        val ds = dataSource ?: throw IllegalStateException("La base de données n'est pas connectée. Assurez-vous que MySQL est démarré ($host:$port).")
         return ds.connection
     }
 

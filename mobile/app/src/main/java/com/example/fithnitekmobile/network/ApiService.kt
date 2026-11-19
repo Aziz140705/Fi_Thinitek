@@ -1,12 +1,16 @@
 package com.example.fithnitekmobile.network
 
 import com.example.fithnitekmobile.models.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -32,7 +36,31 @@ interface ApiService {
     @POST("api/auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
 
-    // Sprint 2 : passer PASSAGER -> CONDUCTEUR (renvoie un nouveau token)
+    // ---------- Conducteur : dossier + paiement ----------
+
+    @GET("api/conducteur/dossier")
+    suspend fun monDossier(): Response<DossierResponse>
+
+    @Multipart
+    @POST("api/conducteur/dossier")
+    suspend fun envoyerDossier(
+        @Part("cin") cin: RequestBody,
+        @Part("permis") permis: RequestBody,
+        @Part("marque") marque: RequestBody,
+        @Part("model") model: RequestBody,
+        @Part("matricule") matricule: RequestBody,
+        @Part("couleur") couleur: RequestBody,
+        @Part("nbPlaces") nbPlaces: RequestBody,
+        @Part("nbSiegesEnfant") nbSiegesEnfant: RequestBody,
+        @Part cinPhoto: MultipartBody.Part,
+        @Part permisPhoto: MultipartBody.Part,
+        @Part vehiculePhoto: MultipartBody.Part
+    ): Response<DossierResponse>
+
+    // Renvoie un NOUVEAU token (rôle CONDUCTEUR) si le paiement réussit
+    @POST("api/conducteur/paiement")
+    suspend fun payerConducteur(): Response<LoginResponse>
+
     @POST("api/users/devenir-conducteur")
     suspend fun devenirConducteur(): Response<LoginResponse>
 

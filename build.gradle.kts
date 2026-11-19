@@ -1,19 +1,9 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
     alias(libs.plugins.android.application) apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.20"
 }
-
-val localProperties = Properties().apply {
-    val localFile = rootProject.file("local.properties")
-    if (localFile.exists()) {
-        localFile.inputStream().use { load(it) }
-    }
-}
-val cartoApiKey = localProperties.getProperty("CARTO_API_KEY", "")
 
 group = "com"
 version = "1.0.0-SNAPSHOT"
@@ -44,15 +34,15 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
 
     // Recevoir et envoyer des données JSON
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:3.6.0")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:3.6.1")
 
     // Convertir JSON en objets Kotlin
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.6.1")
 
     // Hacher les mots de passe
     implementation("org.mindrot:jbcrypt:0.4")
 
-    implementation("io.ktor:ktor-server-auth-jvm:3.6.0")
-    implementation("io.ktor:ktor-server-auth-jwt-jvm:3.6.0")
+    implementation("io.ktor:ktor-server-auth-jvm:3.6.1")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:3.6.1")
     implementation("org.eclipse.angus:jakarta.mail:2.0.5") //SMTP GMAIL
 }

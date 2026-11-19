@@ -1,11 +1,10 @@
-
 package com
 
 import com.fithnitek.routes.authRoutes
+import com.fithnitek.routes.conducteurRoutes
 import com.fithnitek.routes.passwordResetRoutes
 import com.fithnitek.routes.reservationRoutes
 import com.fithnitek.routes.trajetRoutes
-import com.fithnitek.routes.userRoutes
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -17,11 +16,12 @@ fun Application.configureRouting() {
             call.respondText("Hello, World!")
         }
 
-        authRoutes() // Activer les routes d'authentification
+        authRoutes()
         passwordResetRoutes()
 
-        // Sprint 2 : routes protégées par JWT
-        userRoutes()
+        // Dossier conducteur + paiement (remplace l'ancienne route gratuite /devenir-conducteur)
+        conducteurRoutes()
+
         trajetRoutes()
         reservationRoutes()
     }

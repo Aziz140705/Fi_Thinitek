@@ -5,12 +5,13 @@ plugins {
 }
 
 val localProperties = Properties().apply {
-    val localFile = rootProject.file("local.properties")
-    if (localFile.exists()) {
-        localFile.inputStream().use { load(it) }
-    }
+    // Cherche local.properties dans le dossier ouvert (racine) ET dans mobile/ (mobile/ est prioritaire)
+    listOf(rootProject.file("local.properties"), rootProject.file("mobile/local.properties"), file("../local.properties"))
+        .distinct()
+        .filter { it.exists() }
+        .forEach { f -> f.inputStream().use { load(it) } }
 }
-val cartoApiKey = localProperties.getProperty("CARTO_API_KEY", "cb1_56hc_1_ecb9e8b6e8235c2d37113e2a")
+val cartoApiKey = localProperties.getProperty("CARTO_API_KEY", "")
 
 // Adresse du backend Ktor. Pour la changer SANS modifier le code Kotlin, ajoutez dans
 // mobile/local.properties :   API_BASE_URL=http://192.168.1.16:8080/

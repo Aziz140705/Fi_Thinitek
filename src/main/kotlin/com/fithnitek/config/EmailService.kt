@@ -1,4 +1,3 @@
-
 package com.fithnitek.config
 
 import jakarta.mail.Authenticator
@@ -10,18 +9,25 @@ import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import java.util.Properties
 
+// Envoi des codes OTP par Gmail.
+// Les identifiants ne sont JAMAIS écrits dans le code : ils viennent des variables d'environnement
+//   GMAIL_USER          : adresse Gmail expéditrice
+//   GMAIL_APP_PASSWORD  : mot de passe d'application Gmail (16 caractères)
 object EmailService {
 
-    // Gmail utilisé pour envoyer les codes OTP
-    private const val GMAIL = "arfa.aziz789@gmail.com"
+    private fun gmailUser(): String =
+        System.getenv("GMAIL_USER")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalStateException("Variable d'environnement GMAIL_USER manquante")
 
-    // Mot de passe d'application Gmail
-    private const val APP_PASSWORD = "dtut dinm xpmj xivt"
+    private fun appPassword(): String =
+        System.getenv("GMAIL_APP_PASSWORD")?.replace(" ", "")?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalStateException("Variable d'environnement GMAIL_APP_PASSWORD manquante")
 
     // Envoyer le code OTP de 6 chiffres
     fun sendResetCode(toEmail: String, code: String) {
+        val user = gmailUser()
+        val password = appPassword()
 
-        // Configuration SMTP Gmail
         val properties = Properties().apply {
             put("mail.smtp.auth", "true")
             put("mail.smtp.starttls.enable", "true")
@@ -34,54 +40,32 @@ object EmailService {
             put("mail.smtp.writetimeout", "10000")
         }
 
-        // Authentification Gmail
         val session = Session.getInstance(
             properties,
             object : Authenticator() {
-                override fun getPasswordAuthentication(): PasswordAuthentication {
-                    return PasswordAuthentication(
-                        GMAIL,
-                        APP_PASSWORD.replace(" ", "")
-                    )
-                }
+                override fun getPasswordAuthentication() = PasswordAuthentication(user, password)
             }
         )
+        // Pas de session.debug = true : il affiche l'authentification SMTP dans les logs.
 
-        // Afficher les détails SMTP pour les tests
-        session.debug = true
-
-        // Préparer le message
         val message = MimeMessage(session).apply {
-
-            setFrom(InternetAddress(GMAIL))
-
-            setRecipients(
-                Message.RecipientType.TO,
-                InternetAddress.parse(toEmail)
-            )
-
-            setSubject(
-                "Fi Thnitek - Code de vérification",
-                "UTF-8"
-            )
-
+            setFrom(InternetAddress(user))
+            setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail))
+            setSubject("Fi Thnitek - Code de vérification", "UTF-8")
             setText(
                 """
                 Bonjour,
 
-                Vous avez demandé la réinitialisation
-                de votre mot de passe Fi Thnitek.
+                Vous avez demandé la réinitialisation de votre mot de passe Fi Thnitek.
 
                 Votre code de vérification est :
 
                 $code
 
                 Ce code est valable pendant 15 minutes.
-
                 Ne partagez ce code avec personne.
 
-                Si vous n'avez pas demandé cette opération,
-                ignorez cet email.
+                Si vous n'avez pas demandé cette opération, ignorez cet email.
 
                 L'équipe Fi Thnitek
                 """.trimIndent(),
@@ -89,18 +73,10 @@ object EmailService {
             )
         }
 
-        // Envoyer l'email
         try {
-            println("Envoi OTP via $GMAIL vers $toEmail...")
-
             Transport.send(message)
-
-            println("Email accepté par le serveur SMTP Gmail !")
-
         } catch (e: Exception) {
-            System.err.println(
-                "Erreur SMTP : ${e.javaClass.simpleName} - ${e.message}"
-            )
+            System.err.println("Erreur SMTP : ${e.javaClass.simpleName} - ${e.message}")
             throw e
         }
     }
