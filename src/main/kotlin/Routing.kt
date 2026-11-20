@@ -3,6 +3,7 @@ package com
 import com.fithnitek.routes.authRoutes
 import com.fithnitek.routes.conducteurRoutes
 import com.fithnitek.routes.passwordResetRoutes
+import com.fithnitek.routes.profilRoutes
 import com.fithnitek.routes.reservationRoutes
 import com.fithnitek.routes.trajetRoutes
 import io.ktor.server.application.*
@@ -19,8 +20,8 @@ fun Application.configureRouting() {
         authRoutes()
         passwordResetRoutes()
 
-        // Dossier conducteur + paiement (remplace l'ancienne route gratuite /devenir-conducteur)
-        conducteurRoutes()
+        profilRoutes()       // US04 : profil
+        conducteurRoutes()   // dossier + paiement conducteur
 
         trajetRoutes()
         reservationRoutes()

@@ -1,6 +1,7 @@
 package com.fithnitek.repository
 
 import com.fithnitek.config.DatabaseFactory
+import com.fithnitek.models.ProfilDto
 import org.mindrot.jbcrypt.BCrypt
 import java.sql.Statement
 import java.sql.SQLIntegrityConstraintViolationException
@@ -108,6 +109,40 @@ object UserRepository {
                 statement.setString(1, role)
                 statement.setInt(2, idUser)
                 statement.executeUpdate() > 0
+            }
+        }
+    }
+
+    fun findProfil(idUser: Int): ProfilDto? {
+        val sql = "SELECT idUser, nom, prenom, email, telephone, role FROM `user` WHERE idUser = ?"
+        return DatabaseFactory.getConnection().use { conn ->
+            conn.prepareStatement(sql).use { st ->
+                st.setInt(1, idUser)
+                st.executeQuery().use { rs ->
+                    if (rs.next()) {
+                        ProfilDto(
+                            idUser = rs.getInt("idUser"),
+                            nom = rs.getString("nom"),
+                            prenom = rs.getString("prenom"),
+                            email = rs.getString("email"),
+                            telephone = rs.getString("telephone"),
+                            role = rs.getString("role")
+                        )
+                    } else null
+                }
+            }
+        }
+    }
+
+    fun updateProfil(idUser: Int, nom: String, prenom: String, telephone: String?): Boolean {
+        val sql = "UPDATE `user` SET nom = ?, prenom = ?, telephone = ? WHERE idUser = ?"
+        return DatabaseFactory.getConnection().use { conn ->
+            conn.prepareStatement(sql).use { st ->
+                st.setString(1, nom)
+                st.setString(2, prenom)
+                st.setString(3, telephone)
+                st.setInt(4, idUser)
+                st.executeUpdate() > 0
             }
         }
     }

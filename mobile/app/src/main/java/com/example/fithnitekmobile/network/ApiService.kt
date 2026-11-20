@@ -14,9 +14,6 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-// Routes du backend Ktor.
-// Toutes les fonctions sont "suspend" et renvoient Response<T> :
-// le Repository peut ainsi vérifier response.isSuccessful et lire le code HTTP.
 interface ApiService {
 
     // ---------- Authentification ----------
@@ -35,6 +32,14 @@ interface ApiService {
 
     @POST("api/auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
+
+    // ---------- Profil (token JWT obligatoire) ----------
+
+    @GET("api/users/me")
+    suspend fun monProfil(): Response<ProfilResponse>
+
+    @PUT("api/users/me")
+    suspend fun modifierProfil(@Body request: ProfilUpdateRequest): Response<ProfilResponse>
 
     // ---------- Conducteur : dossier + paiement ----------
 
@@ -57,7 +62,6 @@ interface ApiService {
         @Part vehiculePhoto: MultipartBody.Part
     ): Response<DossierResponse>
 
-    // Renvoie un NOUVEAU token (rôle CONDUCTEUR) si le paiement réussit
     @POST("api/conducteur/paiement")
     suspend fun payerConducteur(): Response<LoginResponse>
 
@@ -72,7 +76,6 @@ interface ApiService {
     @GET("api/trajets/mes")
     suspend fun mesTrajets(): Response<TrajetListResponse>
 
-    // Les paramètres null ne sont pas envoyés par Retrofit
     @GET("api/trajets/search")
     suspend fun rechercherTrajets(
         @Query("depart") depart: String? = null,

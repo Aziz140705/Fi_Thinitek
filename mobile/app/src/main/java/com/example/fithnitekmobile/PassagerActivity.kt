@@ -385,7 +385,7 @@ class PassagerActivity : BaseActivity() {
                 }
 
                 R.id.nav_profil -> {
-                    toast("Profil - à développer")
+                    startActivity(Intent(this, ProfilActivity::class.java))
                     true
                 }
 

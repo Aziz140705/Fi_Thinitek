@@ -59,6 +59,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Profil utilisateur (US04) -->
+        <activity
+            android:name=".ProfilActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Nouveau mot de passe après vérification -->
         <activity
             android:name=".ResetPasswordActivity"

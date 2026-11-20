@@ -15,11 +15,17 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             modelClass.isAssignableFrom(AuthViewModel::class.java) ->
                 AuthViewModel(container.sessionManager, container.authRepository) as T
 
+            modelClass.isAssignableFrom(TrajetViewModel::class.java) ->
+                TrajetViewModel(container.trajetRepository) as T
+
             modelClass.isAssignableFrom(PassagerViewModel::class.java) ->
                 PassagerViewModel(container.sessionManager, container.trajetRepository) as T
 
             modelClass.isAssignableFrom(ConducteurViewModel::class.java) ->
                 ConducteurViewModel(container.conducteurRepository) as T
+
+            modelClass.isAssignableFrom(ProfilViewModel::class.java) ->
+                ProfilViewModel(container.profilRepository) as T
 
             else -> throw IllegalArgumentException("ViewModel inconnu : ${modelClass.name}")
         }

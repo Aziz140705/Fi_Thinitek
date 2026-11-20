@@ -8,6 +8,8 @@ import android.view.View
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import com.example.fithnitekmobile.databinding.ActivityTrajetFormBinding
+import com.example.fithnitekmobile.util.CityCoordinates
+import com.example.fithnitekmobile.util.GeoPoint
 import com.example.fithnitekmobile.util.Resource
 import com.example.fithnitekmobile.viewmodel.TrajetViewModel
 import java.text.SimpleDateFormat
@@ -85,13 +87,20 @@ class TrajetFormActivity : BaseActivity() {
             val dateStr = dateFormat.format(selectedCalendar.time)
             val timeStr = timeFormat.format(selectedCalendar.time)
 
+            val departGeo = CityCoordinates.get(depart) ?: GeoPoint(36.8065, 10.1815)
+            val destGeo = CityCoordinates.get(destination) ?: GeoPoint(35.8256, 10.6369)
+
             viewModel.creerTrajet(
                 depart = depart,
                 destination = destination,
                 dateDepart = dateStr,
                 heureDepart = timeStr,
                 prix = prix,
-                places = places
+                places = places,
+                departLat = departGeo.lat,
+                departLng = departGeo.lng,
+                destLat = destGeo.lat,
+                destLng = destGeo.lng
             )
         }
 
