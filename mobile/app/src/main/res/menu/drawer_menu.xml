@@ -19,15 +19,6 @@
             android:title="Mes trajets" />
     </group>
 
-    <item android:title="Espace Conducteur Privilégié">
-        <menu>
-            <item
-                android:id="@+id/nav_passer_conducteur"
-                android:icon="@drawable/ic_car"
-                android:title="⭐ Passer à un compte conducteur ⭐" />
-        </menu>
-    </item>
-
     <item android:title="Compte">
         <menu>
             <item

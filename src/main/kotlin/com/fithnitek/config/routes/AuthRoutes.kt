@@ -79,7 +79,7 @@ fun Route.authRoutes() {
                 call.application.environment.log.error("Erreur lors de l'inscription", e)
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    RegisterResponse(false, "Erreur serveur ou de connexion à la base de données")
+                    RegisterResponse(false, "Erreur serveur ou de connexion BDD : ${e.localizedMessage}")
                 )
                 return@post
             }

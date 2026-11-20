@@ -122,6 +122,7 @@ class PassagerActivity : BaseActivity() {
     }
 
     private fun renderRole(role: String) {
+        binding.cardPasserConducteur.visibility = if (role == "CONDUCTEUR") View.GONE else View.VISIBLE
         currentRole = role
 
         binding.tvRolePill.text = when (role) {
@@ -398,6 +399,10 @@ class PassagerActivity : BaseActivity() {
         }
 
         binding.btnPasserConducteur.setOnClickListener { showPasserConducteur() }
+        binding.cardPasserConducteur.setOnClickListener {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            showPasserConducteur()
+        }
 
         binding.btnLocaliser.setOnClickListener {
             val map = mapLibreMap ?: return@setOnClickListener

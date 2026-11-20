@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ancien élément de menu, remplacé par la carte rouge du tiroir.
+         On garde l'identifiant pour que R.id.nav_passer_conducteur compile toujours. -->
+    <item name="nav_passer_conducteur" type="id" />
+</resources>
