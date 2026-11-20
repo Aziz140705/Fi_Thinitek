@@ -5,6 +5,7 @@ import com.fithnitek.models.TrajetDto
 import com.fithnitek.models.TrajetRequest
 import java.sql.Statement
 import java.sql.Timestamp
+import java.sql.Types
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -32,10 +33,12 @@ object TrajetRepository {
                 st.setInt(1, idConducteur)
                 st.setString(2, req.depart)
                 st.setString(3, req.destination)
-                st.setObject(4, req.departLat)
-                st.setObject(5, req.departLng)
-                st.setObject(6, req.destLat)
-                st.setObject(7, req.destLng)
+
+                if (req.departLat != null) st.setDouble(4, req.departLat) else st.setNull(4, Types.DOUBLE)
+                if (req.departLng != null) st.setDouble(5, req.departLng) else st.setNull(5, Types.DOUBLE)
+                if (req.destLat != null) st.setDouble(6, req.destLat) else st.setNull(6, Types.DOUBLE)
+                if (req.destLng != null) st.setDouble(7, req.destLng) else st.setNull(7, Types.DOUBLE)
+
                 st.setTimestamp(8, timestamp)
                 st.setDouble(9, req.prix)
                 st.setInt(10, req.placesDisponibles)
@@ -84,16 +87,21 @@ object TrajetRepository {
                         val dateStr = if (ts != null) SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(ts) else ""
                         val timeStr = if (ts != null) SimpleDateFormat("HH:mm", Locale.getDefault()).format(ts) else ""
 
+                        val dLat = rs.getDouble("depart_lat").takeIf { !rs.wasNull() }
+                        val dLng = rs.getDouble("depart_lng").takeIf { !rs.wasNull() }
+                        val destL = rs.getDouble("dest_lat").takeIf { !rs.wasNull() }
+                        val destG = rs.getDouble("dest_lng").takeIf { !rs.wasNull() }
+
                         list.add(
                             TrajetDto(
                                 idTrajet = rs.getInt("idTrajet"),
                                 idConducteur = rs.getInt("idConducteur"),
                                 depart = rs.getString("depart"),
                                 destination = rs.getString("destination"),
-                                departLat = rs.getObject("depart_lat") as? Double,
-                                departLng = rs.getObject("depart_lng") as? Double,
-                                destLat = rs.getObject("dest_lat") as? Double,
-                                destLng = rs.getObject("dest_lng") as? Double,
+                                departLat = dLat,
+                                departLng = dLng,
+                                destLat = destL,
+                                destLng = destG,
                                 dateDepart = dateStr,
                                 heureDepart = timeStr,
                                 prix = rs.getDouble("prix"),
@@ -124,16 +132,21 @@ object TrajetRepository {
                         val dateStr = if (ts != null) SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(ts) else ""
                         val timeStr = if (ts != null) SimpleDateFormat("HH:mm", Locale.getDefault()).format(ts) else ""
 
+                        val dLat = rs.getDouble("depart_lat").takeIf { !rs.wasNull() }
+                        val dLng = rs.getDouble("depart_lng").takeIf { !rs.wasNull() }
+                        val destL = rs.getDouble("dest_lat").takeIf { !rs.wasNull() }
+                        val destG = rs.getDouble("dest_lng").takeIf { !rs.wasNull() }
+
                         list.add(
                             TrajetDto(
                                 idTrajet = rs.getInt("idTrajet"),
                                 idConducteur = rs.getInt("idConducteur"),
                                 depart = rs.getString("depart"),
                                 destination = rs.getString("destination"),
-                                departLat = rs.getObject("depart_lat") as? Double,
-                                departLng = rs.getObject("depart_lng") as? Double,
-                                destLat = rs.getObject("dest_lat") as? Double,
-                                destLng = rs.getObject("dest_lng") as? Double,
+                                departLat = dLat,
+                                departLng = dLng,
+                                destLat = destL,
+                                destLng = destG,
                                 dateDepart = dateStr,
                                 heureDepart = timeStr,
                                 prix = rs.getDouble("prix"),
