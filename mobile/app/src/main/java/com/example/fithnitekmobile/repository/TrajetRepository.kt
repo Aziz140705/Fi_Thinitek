@@ -1,5 +1,6 @@
 package com.example.fithnitekmobile.repository
 
+import com.example.fithnitekmobile.models.MessageResponse
 import com.example.fithnitekmobile.models.TrajetListResponse
 import com.example.fithnitekmobile.models.TrajetRequest
 import com.example.fithnitekmobile.models.TrajetResponse
@@ -29,4 +30,7 @@ class TrajetRepository(private val api: ApiService) : BaseRepository() {
 
     suspend fun creerTrajet(req: TrajetRequest): Resource<TrajetResponse> =
         safeApiCall(businessError = { if (it.success) null else it.message }) { api.creerTrajet(req) }
+
+    suspend fun supprimerTrajet(id: Int): Resource<MessageResponse> =
+        safeApiCall(businessError = { if (it.success) null else it.message }) { api.supprimerTrajet(id) }
 }
