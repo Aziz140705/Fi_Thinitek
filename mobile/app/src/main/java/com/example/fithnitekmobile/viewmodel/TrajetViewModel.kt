@@ -28,7 +28,7 @@ class TrajetViewModel(private val repository: TrajetRepository) : ViewModel() {
             _mesTrajetsResult.value = Resource.Loading
             val res = repository.mesTrajets()
             if (res is Resource.Success) {
-                _mesTrajetsResult.value = Resource.Success(res.data.trajets)
+                _mesTrajetsResult.value = Resource.Success(res.data.trajets ?: emptyList())
             } else if (res is Resource.Error) {
                 _mesTrajetsResult.value = Resource.Error(res.message, res.code)
             }

@@ -14,9 +14,11 @@ class TrajetAdapter(
 
     private val items = mutableListOf<TrajetDto>()
 
-    fun submitList(newList: List<TrajetDto>) {
+    fun submitList(newList: List<TrajetDto>?) {
         items.clear()
-        items.addAll(newList)
+        if (newList != null) {
+            items.addAll(newList)
+        }
         notifyDataSetChanged()
     }
 
@@ -40,19 +42,18 @@ class TrajetAdapter(
             binding.tvConducteur.text = "Conduite"
             binding.tvInfos.text = "%.1f DT / place • %d place(s) libre(s)".format(t.prix, t.placesDisponibles)
 
-            // Passager : bouton Réserver
-            if (onReserveClick != null && t.placesDisponibles > 0) {
+            if (onReserveClick != null) {
                 binding.btnPrimary.visibility = View.VISIBLE
                 binding.btnPrimary.text = "Réserver"
+                binding.btnPrimary.isEnabled = t.placesDisponibles > 0
                 binding.btnPrimary.setOnClickListener { onReserveClick.invoke(t) }
             } else {
                 binding.btnPrimary.visibility = View.GONE
             }
 
-            // Conducteur : annuler la publication
             if (onDeleteClick != null) {
                 binding.btnSecondary.visibility = View.VISIBLE
-                binding.btnSecondary.text = "Annuler la publication"
+                binding.btnSecondary.text = "Supprimer"
                 binding.btnSecondary.setOnClickListener { onDeleteClick.invoke(t) }
             } else {
                 binding.btnSecondary.visibility = View.GONE
