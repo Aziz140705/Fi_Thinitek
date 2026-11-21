@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fithnitekmobile.databinding.ActivityRechercheBinding
 import com.example.fithnitekmobile.viewmodel.PassagerViewModel
 import java.text.SimpleDateFormat
@@ -24,6 +25,7 @@ class RechercheActivity : BaseActivity() {
 
     private lateinit var binding: ActivityRechercheBinding
     private val viewModel: PassagerViewModel by viewModels { viewModelFactory }
+    private lateinit var adapter: TrajetAdapter
 
     private var selectedDateFormatted: String? = null
     private val calendar = Calendar.getInstance()
@@ -60,8 +62,17 @@ class RechercheActivity : BaseActivity() {
             toast("Filtres appliqués")
         }
 
+        setupRecycler()
         observeViewModel()
         viewModel.loadTrajetsDisponibles()
+    }
+
+    private fun setupRecycler() {
+        adapter = TrajetAdapter(
+            onDeleteClick = null
+        )
+        binding.recycler.layoutManager = LinearLayoutManager(this)
+        binding.recycler.adapter = adapter
     }
 
     private fun showDatePicker() {
@@ -85,6 +96,7 @@ class RechercheActivity : BaseActivity() {
 
     private fun observeViewModel() {
         viewModel.trajets.observe(this) { list ->
+            adapter.submitList(list)
             if (list.isEmpty()) {
                 binding.tvEmpty.visibility = View.VISIBLE
             } else {
