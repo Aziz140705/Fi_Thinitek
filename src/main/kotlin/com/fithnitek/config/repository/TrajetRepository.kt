@@ -50,8 +50,8 @@ object TrajetRepository {
     fun create(idConducteur: Int, req: TrajetRequest): TrajetDto? {
         val sql = """
             INSERT INTO `trajet`
-            (idConducteur, depart, destination, depart_lat, depart_lng, dest_lat, dest_lng, date_depart, prix, places_total, places_disponibles)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (idConducteur, depart, destination, depart_lat, depart_lng, dest_lat, dest_lng, date_depart, prix, places_total, places_disponibles, statut)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OUVERT')
         """.trimIndent()
 
         val fullDateStr = "${req.dateDepart.trim()} ${req.heureDepart.trim()}"
@@ -105,7 +105,7 @@ object TrajetRepository {
 
     // Mes trajets publiés (les publications annulées ne sont plus affichées)
     fun findByConducteur(idConducteur: Int): List<TrajetDto> {
-        val sql = "$SELECT_COLUMNS WHERE idConducteur = ? AND statut = 'OUVERT' ORDER BY date_depart DESC"
+        val sql = "$SELECT_COLUMNS WHERE idConducteur = ? AND (statut = 'OUVERT' OR statut IS NULL) ORDER BY date_depart DESC"
 
         return DatabaseFactory.getConnection().use { conn ->
             conn.prepareStatement(sql).use { st ->
@@ -119,11 +119,24 @@ object TrajetRepository {
         }
     }
 
+    fun searchAll(): List<TrajetDto> {
+        val sql = "$SELECT_COLUMNS WHERE (statut = 'OUVERT' OR statut IS NULL) AND places_disponibles > 0 ORDER BY date_depart ASC"
+        return DatabaseFactory.getConnection().use { conn ->
+            conn.prepareStatement(sql).use { st ->
+                st.executeQuery().use { rs ->
+                    val list = mutableListOf<TrajetDto>()
+                    while (rs.next()) list.add(mapRow(rs))
+                    list
+                }
+            }
+        }
+    }
+
     // Trajets proposés au passager : ouverts, pas passés, avec des places, et pas les siens
     fun searchAll(idUser: Int): List<TrajetDto> {
         val sql = """
             $SELECT_COLUMNS
-            WHERE statut = 'OUVERT' AND places_disponibles > 0 AND date_depart > ? AND idConducteur <> ?
+            WHERE (statut = 'OUVERT' OR statut IS NULL) AND places_disponibles > 0 AND date_depart > ? AND idConducteur <> ?
             ORDER BY date_depart ASC
         """.trimIndent()
 
