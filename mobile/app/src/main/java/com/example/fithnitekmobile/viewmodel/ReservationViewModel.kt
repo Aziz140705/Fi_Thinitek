@@ -19,17 +19,15 @@ class ReservationViewModel(private val repository: ReservationRepository) : View
     private val _liste = MutableLiveData<Resource<List<ReservationDto>>>()
     val liste: LiveData<Resource<List<ReservationDto>>> = _liste
 
-    // Résultat d'une action (réserver, accepter, refuser, annuler) : message à afficher
     private val _action = MutableLiveData<Event<Resource<String>>>()
     val action: LiveData<Event<Resource<String>>> = _action
 
-    // PASSAGER : mes réservations. CONDUCTEUR : demandes reçues sur mes trajets.
     fun load(mode: ReservationMode) {
         viewModelScope.launch {
             _liste.value = Resource.Loading
             val res = if (mode == ReservationMode.CONDUCTEUR) repository.reservationsRecues()
             else repository.mesReservations()
-            _liste.value = res.map { it.reservations }
+            _liste.value = res.map { it.reservations ?: emptyList() }
         }
     }
 

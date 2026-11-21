@@ -10,8 +10,6 @@ import com.example.fithnitekmobile.models.ReservationMode
 import com.example.fithnitekmobile.util.Resource
 import com.example.fithnitekmobile.viewmodel.ReservationViewModel
 
-// PASSAGER : mes réservations (annulation possible).
-// CONDUCTEUR : demandes reçues sur mes trajets (accepter / refuser).
 class ReservationsActivity : BaseActivity() {
 
     companion object {
@@ -82,8 +80,9 @@ class ReservationsActivity : BaseActivity() {
                 Resource.Loading -> binding.progress.visibility = View.VISIBLE
                 is Resource.Success -> {
                     binding.progress.visibility = View.GONE
-                    adapter.submitList(state.data)
-                    binding.tvEmpty.visibility = if (state.data.isEmpty()) View.VISIBLE else View.GONE
+                    val data = state.data ?: emptyList()
+                    adapter.submitList(data)
+                    binding.tvEmpty.visibility = if (data.isEmpty()) View.VISIBLE else View.GONE
                 }
                 is Resource.Error -> {
                     binding.progress.visibility = View.GONE

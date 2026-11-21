@@ -8,8 +8,6 @@ import com.example.fithnitekmobile.databinding.ItemReservationBinding
 import com.example.fithnitekmobile.models.ReservationDto
 import com.example.fithnitekmobile.models.ReservationMode
 
-// Conducteur : boutons Accepter / Refuser sur les demandes en attente.
-// Passager : bouton "Annuler la réservation" tant que la réservation est active.
 class ReservationAdapter(
     private val mode: ReservationMode,
     private val onAccepter: (ReservationDto) -> Unit,
@@ -19,9 +17,11 @@ class ReservationAdapter(
 
     private val items = mutableListOf<ReservationDto>()
 
-    fun submitList(list: List<ReservationDto>) {
+    fun submitList(list: List<ReservationDto>?) {
         items.clear()
-        items.addAll(list)
+        if (list != null) {
+            items.addAll(list)
+        }
         notifyDataSetChanged()
     }
 
@@ -35,7 +35,7 @@ class ReservationAdapter(
     inner class VH(private val b: ItemReservationBinding) : RecyclerView.ViewHolder(b.root) {
 
         fun bind(r: ReservationDto) {
-            b.tvRoute.text = "${r.depart} → ${r.destination}"
+            b.tvRoute.text = "${r.depart.orEmpty()} → ${r.destination.orEmpty()}"
             b.tvStatut.text = when (r.statut) {
                 "EN_ATTENTE" -> "EN ATTENTE"
                 "ACCEPTEE" -> "ACCEPTÉE"
@@ -43,7 +43,7 @@ class ReservationAdapter(
                 "ANNULEE" -> "ANNULÉE"
                 else -> r.statut
             }
-            b.tvDate.text = "${r.dateDepart} à ${r.heureDepart}"
+            b.tvDate.text = "${r.dateDepart.orEmpty()} à ${r.heureDepart.orEmpty()}"
             b.tvPersonne.text =
                 if (mode == ReservationMode.CONDUCTEUR) "Passager : ${r.passagerNom ?: "-"}"
                 else "Ma réservation"
