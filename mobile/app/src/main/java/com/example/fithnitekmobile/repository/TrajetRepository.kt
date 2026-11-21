@@ -1,13 +1,18 @@
 package com.example.fithnitekmobile.repository
 
-import com.example.fithnitekmobile.models.MessageResponse
 import com.example.fithnitekmobile.models.TrajetListResponse
 import com.example.fithnitekmobile.models.TrajetRequest
 import com.example.fithnitekmobile.models.TrajetResponse
 import com.example.fithnitekmobile.network.ApiService
 import com.example.fithnitekmobile.util.Resource
+import com.example.fithnitekmobile.util.map
 
 class TrajetRepository(private val api: ApiService) : BaseRepository() {
+
+    suspend fun creerTrajet(req: TrajetRequest): Resource<TrajetResponse> =
+        safeApiCall(businessError = { if (it.success && it.trajet != null) null else it.message }) {
+            api.creerTrajet(req)
+        }
 
     suspend fun mesTrajets(): Resource<TrajetListResponse> =
         safeApiCall(businessError = { if (it.success) null else it.message }) { api.mesTrajets() }
@@ -25,12 +30,12 @@ class TrajetRepository(private val api: ApiService) : BaseRepository() {
         rayonKm: Double? = null
     ): Resource<TrajetListResponse> =
         safeApiCall(businessError = { if (it.success) null else it.message }) {
-            api.rechercherTrajets(depart, destination, date, prixMax, placesMin, departLat, departLng, destLat, destLng, rayonKm)
+            api.rechercherTrajets(depart, destination, date, prixMax, placesMin,
+                departLat, departLng, destLat, destLng, rayonKm)
         }
 
-    suspend fun creerTrajet(req: TrajetRequest): Resource<TrajetResponse> =
-        safeApiCall(businessError = { if (it.success) null else it.message }) { api.creerTrajet(req) }
-
-    suspend fun supprimerTrajet(id: Int): Resource<MessageResponse> =
-        safeApiCall(businessError = { if (it.success) null else it.message }) { api.supprimerTrajet(id) }
+    suspend fun supprimerTrajet(idTrajet: Int): Resource<Unit> =
+        safeApiCall(businessError = { if (it.success) null else it.message }) {
+            api.supprimerTrajet(idTrajet)
+        }.map { }
 }

@@ -4,6 +4,7 @@ import com.fithnitek.models.MessageResponse
 import com.fithnitek.models.TrajetListResponse
 import com.fithnitek.models.TrajetRequest
 import com.fithnitek.models.TrajetResponse
+import com.fithnitek.repository.OpResult
 import com.fithnitek.repository.TrajetRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,10 +19,10 @@ import kotlinx.coroutines.withContext
 fun Route.trajetRoutes() {
     authenticate("auth-jwt") {
         route("/api/trajets") {
-            post {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal?.payload?.subject?.toIntOrNull()
 
+            // Publier un trajet
+            post {
+                val userId = call.principal<JWTPrincipal>()?.payload?.subject?.toIntOrNull()
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, MessageResponse(false, "Non autorisé"))
                     return@post
@@ -45,31 +46,33 @@ fun Route.trajetRoutes() {
                 }
             }
 
+            // Vos trajets créés (conducteur)
             get("/mes") {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal?.payload?.subject?.toIntOrNull()
-
+                val userId = call.principal<JWTPrincipal>()?.payload?.subject?.toIntOrNull()
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, TrajetListResponse(false, "Non autorisé"))
                     return@get
                 }
 
-                val trajets = withContext(Dispatchers.IO) {
-                    TrajetRepository.findByConducteur(userId)
-                }
+                val trajets = withContext(Dispatchers.IO) { TrajetRepository.findByConducteur(userId) }
                 call.respond(HttpStatusCode.OK, TrajetListResponse(true, "Liste de vos trajets", trajets))
             }
 
+            // Trajets disponibles pour un passager (sans les siens)
             get("/search") {
-                val trajets = withContext(Dispatchers.IO) {
-                    TrajetRepository.searchAll()
+                val userId = call.principal<JWTPrincipal>()?.payload?.subject?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.Unauthorized, TrajetListResponse(false, "Non autorisé"))
+                    return@get
                 }
+
+                val trajets = withContext(Dispatchers.IO) { TrajetRepository.searchAll(userId) }
                 call.respond(HttpStatusCode.OK, TrajetListResponse(true, "Résultats de recherche", trajets))
             }
 
+            // Annuler la publication
             delete("/{id}") {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal?.payload?.subject?.toIntOrNull()
+                val userId = call.principal<JWTPrincipal>()?.payload?.subject?.toIntOrNull()
                 val trajetId = call.parameters["id"]?.toIntOrNull()
 
                 if (userId == null || trajetId == null) {
@@ -77,14 +80,15 @@ fun Route.trajetRoutes() {
                     return@delete
                 }
 
-                val deleted = withContext(Dispatchers.IO) {
-                    TrajetRepository.delete(trajetId, userId)
-                }
-
-                if (deleted) {
-                    call.respond(HttpStatusCode.OK, MessageResponse(true, "Trajet supprimé"))
-                } else {
-                    call.respond(HttpStatusCode.NotFound, MessageResponse(false, "Trajet introuvable"))
+                when (val result = withContext(Dispatchers.IO) { TrajetRepository.annuler(trajetId, userId) }) {
+                    is OpResult.Fail -> call.respond(
+                        HttpStatusCode.fromValue(result.httpStatus),
+                        MessageResponse(false, result.message)
+                    )
+                    is OpResult.Ok<*> -> call.respond(
+                        HttpStatusCode.OK,
+                        MessageResponse(true, "Publication annulée. Les demandes en cours sont annulées.")
+                    )
                 }
             }
         }

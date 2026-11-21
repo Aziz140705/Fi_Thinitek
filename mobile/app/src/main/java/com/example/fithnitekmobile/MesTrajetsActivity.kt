@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fithnitekmobile.databinding.ActivityMesTrajetsBinding
 import com.example.fithnitekmobile.models.ReservationMode
@@ -27,6 +28,7 @@ class MesTrajetsActivity : BaseActivity() {
             startActivity(Intent(this, TrajetFormActivity::class.java))
         }
 
+        // Demandes reçues sur mes trajets : accepter ou refuser
         binding.btnDemandes.setOnClickListener {
             startActivity(Intent(this, ReservationsActivity::class.java).apply {
                 putExtra(ReservationsActivity.EXTRA_MODE, ReservationMode.CONDUCTEUR.name)
@@ -45,7 +47,12 @@ class MesTrajetsActivity : BaseActivity() {
     private fun setupRecycler() {
         adapter = TrajetAdapter(
             onDeleteClick = { trajet ->
-                viewModel.supprimerTrajet(trajet.idTrajet)
+                AlertDialog.Builder(this)
+                    .setTitle("Annuler cette publication ?")
+                    .setMessage("${trajet.depart} → ${trajet.destination}\n\nLes demandes en cours sur ce trajet seront annulées.")
+                    .setPositiveButton("Oui, annuler") { _, _ -> viewModel.supprimerTrajet(trajet.idTrajet) }
+                    .setNegativeButton("Non", null)
+                    .show()
             }
         )
         binding.recycler.layoutManager = LinearLayoutManager(this)
@@ -59,11 +66,7 @@ class MesTrajetsActivity : BaseActivity() {
                 is Resource.Success -> {
                     binding.progress.visibility = View.GONE
                     adapter.submitList(state.data)
-                    if (state.data.isEmpty()) {
-                        binding.tvEmpty.visibility = View.VISIBLE
-                    } else {
-                        binding.tvEmpty.visibility = View.GONE
-                    }
+                    binding.tvEmpty.visibility = if (state.data.isEmpty()) View.VISIBLE else View.GONE
                 }
                 is Resource.Error -> {
                     binding.progress.visibility = View.GONE
@@ -75,10 +78,9 @@ class MesTrajetsActivity : BaseActivity() {
         viewModel.supprimerResult.observe(this) { event ->
             when (val state = event.getContentIfNotHandled()) {
                 Resource.Loading -> binding.progress.visibility = View.VISIBLE
-                is Resource.Success -> {
-                    toast("Trajet supprimé avec succès")
-                }
+                is Resource.Success -> toast("Publication annulée")
                 is Resource.Error -> {
+                    binding.progress.visibility = View.GONE
                     showError(state.message)
                 }
                 null -> Unit

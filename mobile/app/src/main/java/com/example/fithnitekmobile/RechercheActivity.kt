@@ -6,9 +6,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.fithnitekmobile.databinding.ActivityRechercheBinding
+import com.example.fithnitekmobile.models.TrajetDto
+import com.example.fithnitekmobile.util.Resource
 import com.example.fithnitekmobile.viewmodel.PassagerViewModel
+import com.example.fithnitekmobile.viewmodel.ReservationViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -25,6 +29,7 @@ class RechercheActivity : BaseActivity() {
 
     private lateinit var binding: ActivityRechercheBinding
     private val viewModel: PassagerViewModel by viewModels { viewModelFactory }
+    private val reservationViewModel: ReservationViewModel by viewModels { viewModelFactory }
     private lateinit var adapter: TrajetAdapter
 
     private var selectedDateFormatted: String? = null
@@ -69,10 +74,29 @@ class RechercheActivity : BaseActivity() {
 
     private fun setupRecycler() {
         adapter = TrajetAdapter(
-            onDeleteClick = null
+            onDeleteClick = null,
+            onReserveClick = { trajet -> askPlaces(trajet) }
         )
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
+    }
+
+    // Le passager choisit le nombre de places, puis la demande est envoyée
+    private fun askPlaces(trajet: TrajetDto) {
+        val max = minOf(trajet.placesDisponibles, 8)
+        if (max < 1) {
+            toast("Trajet complet")
+            return
+        }
+        val labels = Array(max) { i -> if (i == 0) "1 place" else "${i + 1} places" }
+
+        AlertDialog.Builder(this)
+            .setTitle("Réserver ${trajet.depart} → ${trajet.destination}")
+            .setItems(labels) { _, which ->
+                reservationViewModel.reserver(trajet.idTrajet, which + 1)
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
     }
 
     private fun showDatePicker() {
@@ -97,10 +121,18 @@ class RechercheActivity : BaseActivity() {
     private fun observeViewModel() {
         viewModel.trajets.observe(this) { list ->
             adapter.submitList(list)
-            if (list.isEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-            } else {
-                binding.tvEmpty.visibility = View.GONE
+            binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        reservationViewModel.action.observe(this) { event ->
+            when (val state = event.getContentIfNotHandled()) {
+                Resource.Loading -> Unit
+                is Resource.Success -> {
+                    toast(state.data, long = true)
+                    viewModel.loadTrajetsDisponibles()   // les places restantes ont changé
+                }
+                is Resource.Error -> showError(state.message)
+                null -> Unit
             }
         }
     }

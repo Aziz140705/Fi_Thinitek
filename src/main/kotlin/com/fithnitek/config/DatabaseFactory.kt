@@ -206,12 +206,23 @@ object DatabaseFactory {
                     """.trimIndent()
                 )
             }
+            ensureTrajetStatut(connection)
             println("Tables 'user', 'trajet', 'reservation', 'conducteur', 'vehicule' et 'paiement' prêtes.")
         } catch (e: Exception) {
             println("Avertissement création tables: ${e.message}")
         }
     }
-
+    // Ajoute la colonne `statut` aux trajets (OUVERT ou ANNULE) si elle n'existe pas encore
+    private fun ensureTrajetStatut(connection: Connection) {
+        try {
+            connection.createStatement().use { st ->
+                st.executeUpdate("ALTER TABLE `trajet` ADD COLUMN `statut` VARCHAR(20) NOT NULL DEFAULT 'OUVERT'")
+            }
+            println("Colonne trajet.statut ajoutée.")
+        } catch (e: Exception) {
+            // La colonne existe déjà : rien à faire
+        }
+    }
     // Fournir une connexion aux repositories
     fun getConnection(): Connection {
         val ds = dataSource ?: throw IllegalStateException("La base de données n'est pas connectée. Assurez-vous que MySQL est démarré ($host:$port).")

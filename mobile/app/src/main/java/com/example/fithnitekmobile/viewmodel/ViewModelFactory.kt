@@ -24,6 +24,9 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             modelClass.isAssignableFrom(ConducteurViewModel::class.java) ->
                 ConducteurViewModel(container.conducteurRepository) as T
 
+            modelClass.isAssignableFrom(ReservationViewModel::class.java) ->
+                ReservationViewModel(container.reservationRepository) as T
+
             modelClass.isAssignableFrom(ProfilViewModel::class.java) ->
                 ProfilViewModel(container.profilRepository) as T
 

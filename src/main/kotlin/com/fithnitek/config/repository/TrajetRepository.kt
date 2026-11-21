@@ -3,15 +3,49 @@ package com.fithnitek.repository
 import com.fithnitek.config.DatabaseFactory
 import com.fithnitek.models.TrajetDto
 import com.fithnitek.models.TrajetRequest
+import java.sql.ResultSet
 import java.sql.Statement
 import java.sql.Timestamp
 import java.sql.Types
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Locale
 
 object TrajetRepository {
 
     private val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
+    private const val SELECT_COLUMNS = """
+        SELECT idTrajet, idConducteur, depart, destination, depart_lat, depart_lng, dest_lat, dest_lng,
+               date_depart, prix, places_disponibles
+        FROM `trajet`
+    """
+
+    private fun mapRow(rs: ResultSet): TrajetDto {
+        val ts = rs.getTimestamp("date_depart")
+        val dateStr = if (ts != null) SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(ts) else ""
+        val timeStr = if (ts != null) SimpleDateFormat("HH:mm", Locale.getDefault()).format(ts) else ""
+
+        val dLat = rs.getDouble("depart_lat").takeIf { !rs.wasNull() }
+        val dLng = rs.getDouble("depart_lng").takeIf { !rs.wasNull() }
+        val destL = rs.getDouble("dest_lat").takeIf { !rs.wasNull() }
+        val destG = rs.getDouble("dest_lng").takeIf { !rs.wasNull() }
+
+        return TrajetDto(
+            idTrajet = rs.getInt("idTrajet"),
+            idConducteur = rs.getInt("idConducteur"),
+            depart = rs.getString("depart"),
+            destination = rs.getString("destination"),
+            departLat = dLat,
+            departLng = dLng,
+            destLat = destL,
+            destLng = destG,
+            dateDepart = dateStr,
+            heureDepart = timeStr,
+            prix = rs.getDouble("prix"),
+            placesDisponibles = rs.getInt("places_disponibles")
+        )
+    }
 
     fun create(idConducteur: Int, req: TrajetRequest): TrajetDto? {
         val sql = """
@@ -69,104 +103,84 @@ object TrajetRepository {
         }
     }
 
+    // Mes trajets publiés (les publications annulées ne sont plus affichées)
     fun findByConducteur(idConducteur: Int): List<TrajetDto> {
-        val sql = """
-            SELECT idTrajet, idConducteur, depart, destination, depart_lat, depart_lng, dest_lat, dest_lng, date_depart, prix, places_disponibles
-            FROM `trajet`
-            WHERE idConducteur = ?
-            ORDER BY date_depart DESC
-        """.trimIndent()
+        val sql = "$SELECT_COLUMNS WHERE idConducteur = ? AND statut = 'OUVERT' ORDER BY date_depart DESC"
 
         return DatabaseFactory.getConnection().use { conn ->
             conn.prepareStatement(sql).use { st ->
                 st.setInt(1, idConducteur)
                 st.executeQuery().use { rs ->
                     val list = mutableListOf<TrajetDto>()
-                    while (rs.next()) {
-                        val ts = rs.getTimestamp("date_depart")
-                        val dateStr = if (ts != null) SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(ts) else ""
-                        val timeStr = if (ts != null) SimpleDateFormat("HH:mm", Locale.getDefault()).format(ts) else ""
-
-                        val dLat = rs.getDouble("depart_lat").takeIf { !rs.wasNull() }
-                        val dLng = rs.getDouble("depart_lng").takeIf { !rs.wasNull() }
-                        val destL = rs.getDouble("dest_lat").takeIf { !rs.wasNull() }
-                        val destG = rs.getDouble("dest_lng").takeIf { !rs.wasNull() }
-
-                        list.add(
-                            TrajetDto(
-                                idTrajet = rs.getInt("idTrajet"),
-                                idConducteur = rs.getInt("idConducteur"),
-                                depart = rs.getString("depart"),
-                                destination = rs.getString("destination"),
-                                departLat = dLat,
-                                departLng = dLng,
-                                destLat = destL,
-                                destLng = destG,
-                                dateDepart = dateStr,
-                                heureDepart = timeStr,
-                                prix = rs.getDouble("prix"),
-                                placesDisponibles = rs.getInt("places_disponibles")
-                            )
-                        )
-                    }
+                    while (rs.next()) list.add(mapRow(rs))
                     list
                 }
             }
         }
     }
 
-    fun searchAll(): List<TrajetDto> {
+    // Trajets proposés au passager : ouverts, pas passés, avec des places, et pas les siens
+    fun searchAll(idUser: Int): List<TrajetDto> {
         val sql = """
-            SELECT idTrajet, idConducteur, depart, destination, depart_lat, depart_lng, dest_lat, dest_lng, date_depart, prix, places_disponibles
-            FROM `trajet`
-            WHERE places_disponibles > 0
+            $SELECT_COLUMNS
+            WHERE statut = 'OUVERT' AND places_disponibles > 0 AND date_depart > ? AND idConducteur <> ?
             ORDER BY date_depart ASC
         """.trimIndent()
 
         return DatabaseFactory.getConnection().use { conn ->
             conn.prepareStatement(sql).use { st ->
+                st.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()))
+                st.setInt(2, idUser)
                 st.executeQuery().use { rs ->
                     val list = mutableListOf<TrajetDto>()
-                    while (rs.next()) {
-                        val ts = rs.getTimestamp("date_depart")
-                        val dateStr = if (ts != null) SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(ts) else ""
-                        val timeStr = if (ts != null) SimpleDateFormat("HH:mm", Locale.getDefault()).format(ts) else ""
-
-                        val dLat = rs.getDouble("depart_lat").takeIf { !rs.wasNull() }
-                        val dLng = rs.getDouble("depart_lng").takeIf { !rs.wasNull() }
-                        val destL = rs.getDouble("dest_lat").takeIf { !rs.wasNull() }
-                        val destG = rs.getDouble("dest_lng").takeIf { !rs.wasNull() }
-
-                        list.add(
-                            TrajetDto(
-                                idTrajet = rs.getInt("idTrajet"),
-                                idConducteur = rs.getInt("idConducteur"),
-                                depart = rs.getString("depart"),
-                                destination = rs.getString("destination"),
-                                departLat = dLat,
-                                departLng = dLng,
-                                destLat = destL,
-                                destLng = destG,
-                                dateDepart = dateStr,
-                                heureDepart = timeStr,
-                                prix = rs.getDouble("prix"),
-                                placesDisponibles = rs.getInt("places_disponibles")
-                            )
-                        )
-                    }
+                    while (rs.next()) list.add(mapRow(rs))
                     list
                 }
             }
         }
     }
 
-    fun delete(idTrajet: Int, idConducteur: Int): Boolean {
-        val sql = "DELETE FROM `trajet` WHERE idTrajet = ? AND idConducteur = ?"
-        return DatabaseFactory.getConnection().use { conn ->
-            conn.prepareStatement(sql).use { st ->
-                st.setInt(1, idTrajet)
-                st.setInt(2, idConducteur)
-                st.executeUpdate() > 0
+    // Annuler la publication : le trajet disparaît et les demandes en cours sont annulées
+    fun annuler(idTrajet: Int, idConducteur: Int): OpResult<Unit> {
+        DatabaseFactory.getConnection().use { conn ->
+            conn.autoCommit = false
+            try {
+                val row = conn.prepareStatement(
+                    "SELECT idConducteur, statut FROM `trajet` WHERE idTrajet = ? FOR UPDATE"
+                ).use { st ->
+                    st.setInt(1, idTrajet)
+                    st.executeQuery().use { rs -> if (rs.next()) rs.getInt(1) to rs.getString(2) else null }
+                }
+
+                if (row == null) {
+                    conn.rollback()
+                    return OpResult.Fail(404, "Trajet introuvable")
+                }
+                if (row.first != idConducteur) {
+                    conn.rollback()
+                    return OpResult.Fail(403, "Ce trajet ne vous appartient pas")
+                }
+                if (row.second == "ANNULE") {
+                    conn.rollback()
+                    return OpResult.Fail(409, "Cette publication est déjà annulée")
+                }
+
+                conn.prepareStatement(
+                    "UPDATE `reservation` SET statut = 'ANNULEE' WHERE idTrajet = ? AND statut IN ('EN_ATTENTE', 'ACCEPTEE')"
+                ).use { st ->
+                    st.setInt(1, idTrajet)
+                    st.executeUpdate()
+                }
+                conn.prepareStatement("UPDATE `trajet` SET statut = 'ANNULE' WHERE idTrajet = ?").use { st ->
+                    st.setInt(1, idTrajet)
+                    st.executeUpdate()
+                }
+
+                conn.commit()
+                return OpResult.Ok(Unit)
+            } catch (e: Exception) {
+                conn.rollback()
+                throw e
             }
         }
     }

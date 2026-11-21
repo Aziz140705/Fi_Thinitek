@@ -8,7 +8,8 @@ import com.example.fithnitekmobile.databinding.ItemTrajetBinding
 import com.example.fithnitekmobile.models.TrajetDto
 
 class TrajetAdapter(
-    private val onDeleteClick: ((TrajetDto) -> Unit)? = null
+    private val onDeleteClick: ((TrajetDto) -> Unit)? = null,
+    private val onReserveClick: ((TrajetDto) -> Unit)? = null
 ) : RecyclerView.Adapter<TrajetAdapter.TrajetViewHolder>() {
 
     private val items = mutableListOf<TrajetDto>()
@@ -39,11 +40,19 @@ class TrajetAdapter(
             binding.tvConducteur.text = "Conduite"
             binding.tvInfos.text = "%.1f DT / place • %d place(s) libre(s)".format(t.prix, t.placesDisponibles)
 
-            binding.btnPrimary.visibility = View.GONE
+            // Passager : bouton Réserver
+            if (onReserveClick != null && t.placesDisponibles > 0) {
+                binding.btnPrimary.visibility = View.VISIBLE
+                binding.btnPrimary.text = "Réserver"
+                binding.btnPrimary.setOnClickListener { onReserveClick.invoke(t) }
+            } else {
+                binding.btnPrimary.visibility = View.GONE
+            }
 
+            // Conducteur : annuler la publication
             if (onDeleteClick != null) {
                 binding.btnSecondary.visibility = View.VISIBLE
-                binding.btnSecondary.text = "Supprimer"
+                binding.btnSecondary.text = "Annuler la publication"
                 binding.btnSecondary.setOnClickListener { onDeleteClick.invoke(t) }
             } else {
                 binding.btnSecondary.visibility = View.GONE
