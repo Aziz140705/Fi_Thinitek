@@ -154,7 +154,7 @@ class RechercheActivity : BaseActivity() {
                 if (departGeo != null && tGeo != null) {
                     GeoUtils.distanceKm(departGeo.lat, departGeo.lng, tGeo.lat, tGeo.lng) <= rayonKm
                 } else {
-                    t.depart.contains(searchDepart, ignoreCase = true) || searchDepart.contains(t.depart, ignoreCase = true)
+                    CityCoordinates.isSimilar(searchDepart, t.depart)
                 }
             }
 
@@ -163,7 +163,7 @@ class RechercheActivity : BaseActivity() {
                 if (destGeo != null && tGeo != null) {
                     GeoUtils.distanceKm(destGeo.lat, destGeo.lng, tGeo.lat, tGeo.lng) <= rayonKm
                 } else {
-                    t.destination.contains(searchDest, ignoreCase = true) || searchDest.contains(t.destination, ignoreCase = true)
+                    CityCoordinates.isSimilar(searchDest, t.destination)
                 }
             }
 
